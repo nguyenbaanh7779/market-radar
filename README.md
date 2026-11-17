@@ -54,7 +54,7 @@ src/market_radar/
   pipeline.py    update / evaluate / backtest / daily
   cli.py         `market-radar` command
 tests/           pytest on synthetic data (no network)
-docs/            strategy/ (research design), architecture/ (system, data dictionary), guide/ (setup), proposal/
+docs/            strategy/ (research design), architecture/ (system, data dictionary), guide/ (setup)
 .github/         ci.yml (lint + tests), daily.yml (05:30 ICT run)
 ```
 
