@@ -35,9 +35,26 @@ the week is the target, not a deadline.
   - Verify the VN30 list against HOSE; decide 2020 vs 2023 as sample start
   - Done when: the decisions are recorded in docs/strategy Sections 5–6
 
+- [ ] **`feat/holdout-split`** (W5, before `feat/forecaster-v1`) — keep a
+  final test period untouched by model selection
+  - Today every walk-forward test block (01/2024–11/2026) is used for
+    evaluation and there is no validation set (hyperparameters are fixed
+    in `config/settings.yaml`). Choosing models on these blocks would bias
+    the reported results upwards (selection bias)
+  - Split: walk-forward dev 01/2024 → ~05/2026 (model comparison and
+    tuning), holdout ~06/2026 → 11/2026 (run once with the chosen model),
+    forward test 11/2026 → 01/2027 (truly unseen, RQ5)
+  - Add `walk_forward.holdout_start` to `config/settings.yaml`; `evaluate`
+    runs only the folds before it, `evaluate --holdout` the rest
+  - Tuning uses an inner validation block inside each fold's training
+    window, never the fold's test block
+  - Done when: docs/strategy Section 8.3 describes the three periods and
+    the holdout has not been looked at before the model is chosen
+
 - [ ] **`feat/forecaster-v1`** (W5–6) — notebook `03_modeling` (RQ2)
   - XGBoost; LSTM as a comparison only
-  - Hyperparameter tuning inside the walk-forward; class-imbalance
+  - Hyperparameter tuning inside the walk-forward (inner validation block,
+    see `feat/holdout-split`); class-imbalance
     handling (class weights or a threshold on P(SIDEWAY))
   - Probability calibration (isotonic / Platt on an inner block); keep
     only if Brier improves without hurting log loss
