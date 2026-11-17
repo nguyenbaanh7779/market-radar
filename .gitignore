@@ -221,3 +221,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# macOS
+.DS_Store
+
+# VS Code settings hold machine-specific paths (see docs/guide/README.md)
+.vscode/settings.json
+
+# market-radar: market data and results are re-creatable from the CLI;
+# forward-test state lives on the `data` branch (see docs/guide/README.md)
+/data/
+/state/
+/models/
+
+# Personal holdings never go into git (CI reads them from a secret)
+config/portfolio.yaml

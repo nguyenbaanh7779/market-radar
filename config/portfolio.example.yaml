@@ -1,0 +1,8 @@
+# Template for your own holdings. Copy it to config/portfolio.yaml
+# (gitignored) and edit. In GitHub Actions, store the same YAML in the
+# PORTFOLIO_YAML secret. Prices are in thousand VND, like the market data.
+since: "2026-11-02"   # when you set up the portfolio (for the VN30 comparison)
+holdings:
+  - {symbol: FPT, quantity: 200, avg_price: 95.0}
+  - {symbol: MBB, quantity: 500, avg_price: 24.5}
+  - {symbol: HPG, quantity: 1000, avg_price: 26.0}
