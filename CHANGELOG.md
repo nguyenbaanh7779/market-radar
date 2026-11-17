@@ -12,3 +12,7 @@
 - Add the daily pipeline and CLI (`update`, `check`, `signals`, `evaluate`, `backtest`, `daily`): forecasts of every model logged before their outcome, resolution of past forecasts, a forward paper account, and a newsletter sent to Telegram, with idempotent CSV logs and the personal portfolio kept out of saved copies ([`0fc51e4`](https://github.com/nguyenbaanh7779/market-radar/commit/0fc51e43ac14d535a07f4e3b9674eb22fc6d229d))
 - Add GitHub Actions: `ci.yml` (ruff and pytest on Python 3.12) and `daily.yml` (05:30 ICT on weekdays, retries while bars are unpublished, state committed to the orphan `data` branch) ([`44465b9`](https://github.com/nguyenbaanh7779/market-radar/commit/44465b9c7ce124f1545142fdb3f64fa13788a104))
 - Add `docs/strategy/README.md` (research design and the skeleton's baseline results), `docs/data_dictionary.md` with a source log, `docs/guide/README.md` (setup, secrets, data branch, optional vnstock v6), the 13-week `TODO.md` and the project README ([`a309488`](https://github.com/nguyenbaanh7779/market-radar/commit/a309488aa42444892569ec04c36b192f25ef9a5f))
+
+### Updates
+
+- Name the HistGB fallback of the `gbdt` model in its version (`gbdt-histgb-…`) so forward logs never mix it with LightGBM, and document how to give LightGBM the `libomp` it needs on macOS without Homebrew (link scikit-learn's bundled copy into the uv Python's `lib/`) in `docs/guide/README.md`

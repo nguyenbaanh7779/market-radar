@@ -109,8 +109,22 @@ def test_models_return_valid_probabilities(settings, data, name):
     assert np.allclose(proba.sum(axis=1), 1.0)
     explained = model.explain(train.head(3))
     assert len(explained) == 3
-    if name in ("logistic", "gbdt"):
+    if name == "logistic" or model.backend == "lightgbm":
         assert explained.str.len().gt(0).all()
+
+
+def test_gbdt_fallback_is_named_in_the_version(settings, data, monkeypatch):
+    from market_radar.forecaster import models
+
+    def missing():
+        raise OSError("Library not loaded: @rpath/libomp.dylib")
+
+    monkeypatch.setattr(models, "_import_lightgbm", missing)
+    agent = ForecastAgent("gbdt", 1, data.feature_cols, settings)
+    rows = data.panel[data.panel["date"] == data.asof]
+    out = agent.fit(data.panel).predict(rows)
+    assert agent.model.backend == "histgb"
+    assert out["model_version"].str.startswith("gbdt-histgb-h1-").all()
 
 
 def test_missing_class_gets_zero_probability(settings, data):

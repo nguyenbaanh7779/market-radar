@@ -32,6 +32,7 @@ class DirectionModel(abc.ABC):
     """
 
     name = "base"
+    backend = ""
 
     def __init__(self, feature_cols: list[str]) -> None:
         self.feature_cols = list(feature_cols)
@@ -253,10 +254,13 @@ class GBDTModel(DirectionModel):
                  params: dict[str, Any]) -> None:
         super().__init__(feature_cols)
         try:
-            import lightgbm
+            lightgbm = _import_lightgbm()
         except (ImportError, OSError) as error:  # missing libomp on macOS
             from sklearn.ensemble import HistGradientBoostingClassifier
-            logger.warning("LightGBM unavailable (%s); using HistGB", error)
+            logger.warning(
+                "LightGBM unavailable (%s); falling back to HistGB, logged "
+                "as gbdt-histgb. On macOS without Homebrew see "
+                "docs/guide/README.md (libomp).", error)
             self._model = HistGradientBoostingClassifier(
                 learning_rate=params.get("learning_rate", 0.05),
                 max_iter=params.get("n_estimators", 300),
@@ -264,12 +268,12 @@ class GBDTModel(DirectionModel):
                 min_samples_leaf=params.get("min_child_samples", 200),
                 random_state=7,
             )
-            self._is_lgbm = False
+            self.backend = "histgb"
         else:
             self._model = lightgbm.LGBMClassifier(
                 objective="multiclass", random_state=7, verbose=-1,
                 **params)
-            self._is_lgbm = True
+            self.backend = "lightgbm"
 
     def fit(self, features: pd.DataFrame, labels: pd.Series) -> DirectionModel:
         """Fit the trees.
@@ -309,7 +313,7 @@ class GBDTModel(DirectionModel):
         Returns:
             Text such as ``vol_20 +0.12, ret_1 -0.08`` per row.
         """
-        if not self._is_lgbm or features.empty:
+        if self.backend != "lightgbm" or features.empty:
             return super().explain(features, top)
         data = features[self.feature_cols]
         winners = self._model.predict_proba(data).argmax(axis=1)
@@ -322,6 +326,17 @@ class GBDTModel(DirectionModel):
         return pd.Series(
             [_top_drivers(row, self.feature_cols, top) for row in rows],
             index=features.index, dtype="object")
+
+
+def _import_lightgbm() -> Any:
+    """Import LightGBM (a function so tests can simulate it missing).
+
+    Returns:
+        The ``lightgbm`` module.
+    """
+    import lightgbm
+
+    return lightgbm
 
 
 def make_model(

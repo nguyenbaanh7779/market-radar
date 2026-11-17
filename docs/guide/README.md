@@ -29,6 +29,24 @@ dependencies. After changing them, regenerate the pins with
 
 In VS Code, pick `.venv/bin/python` with *Python: Select Interpreter*.
 
+### LightGBM on macOS without Homebrew (libomp)
+
+LightGBM's macOS wheel loads `libomp.dylib`, normally installed with
+`brew install libomp`. Without Homebrew, `import lightgbm` fails and the
+`gbdt` model falls back to scikit-learn's HistGB (logged as
+`gbdt-histgb-…`, without explanations). scikit-learn ships its own copy of
+libomp; link it into the `lib/` folder of the uv Python, which LightGBM
+searches (one OpenMP runtime, no sudo):
+
+```bash
+ln -sf "$PWD/.venv/lib/python3.12/site-packages/sklearn/.dylibs/libomp.dylib" \
+  "$(python3 -c 'import sys; print(sys.base_prefix)')/lib/libomp.dylib"
+python -c "import lightgbm"   # no error = fixed
+```
+
+The link points into `.venv`; run the command again after recreating it.
+Linux (and the GitHub runners) need nothing extra.
+
 ## 2. Running locally
 
 ```bash

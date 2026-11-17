@@ -37,9 +37,15 @@ class ForecastAgent:
 
     @property
     def version(self) -> str:
-        """Return a version string tied to the settings that matter."""
-        return (f"{self.model_name}-h{self.horizon}-"
-                f"{self.settings.fingerprint()}")
+        """Return a version string tied to the settings that matter.
+
+        A fallback backend (e.g. HistGB instead of LightGBM) is part of the
+        name, so forward logs never mix two different models.
+        """
+        name = self.model_name
+        if self.model is not None and self.model.backend == "histgb":
+            name += "-histgb"
+        return f"{name}-h{self.horizon}-{self.settings.fingerprint()}"
 
     def fit(self, panel: pd.DataFrame) -> ForecastAgent:
         """Fit on every labelled row from the sample start onwards.
