@@ -59,6 +59,15 @@ the week is the target, not a deadline.
   - Probability calibration (isotonic / Platt on an inner block); keep
     only if Brier improves without hurting log loss
   - Separate index models (VNINDEX, VN30, BANKS) vs the shared panel
+  - Binary variant for the trading horizon: UP (`r > θ`) vs not UP, all
+    rows kept (dropping SIDEWAY rows would train on a different
+    distribution). Compare with the 3-class model on the log loss of
+    P(UP) and in the backtest. Keep 3 classes as the label definition and
+    for the 1-session index forecasts: SIDEWAY is 20–21% of 1-session
+    labels for VNINDEX/VN30/BANKS (14% for stocks, 4.8% for stocks at
+    5 sessions), and Arena scores 3 classes. If the binary variant is
+    adopted for trading, add it to "Changes from the proposal" in
+    docs/strategy
   - Done when: one model is chosen with a DM p-value against both
     baselines for h = 1 and h = 5
 
