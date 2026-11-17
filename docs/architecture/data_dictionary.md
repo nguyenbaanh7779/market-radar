@@ -68,6 +68,8 @@ One row per instrument (stocks, indices, BANKS) and session.
 
 | Group | Columns | Definition |
 |---|---|---|
+| keys | `date`, `symbol` | Session and instrument |
+| helpers | `close`, `sector` | Close used for labels; sector used to join rotation features (not model inputs) |
 | returns | `ret_1` … `ret_20` | close / close *k* sessions earlier − 1 |
 | trend | `dist_ma20`, `dist_ma50`, `ma20_ma50` | As for the index |
 | oscillators | `rsi_14` | Wilder RSI, 0–100 |

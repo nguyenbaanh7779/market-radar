@@ -16,3 +16,4 @@
 ### Updates
 
 - Name the HistGB fallback of the `gbdt` model in its version (`gbdt-histgb-…`) so forward logs never mix it with LightGBM, and document how to give LightGBM the `libomp` it needs on macOS without Homebrew (link scikit-learn's bundled copy into the uv Python's `lib/`) in `docs/guide/README.md`
+- Move the data dictionary to `docs/architecture/data_dictionary.md` and add `docs/architecture/README.md` (components, daily run, storage, automation, extension points)

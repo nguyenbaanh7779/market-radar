@@ -241,7 +241,7 @@ outcome exists, which makes the forward test auditable (RQ5).
 and code commit), `resolved.csv`, `orders.csv`, `trades.csv`,
 `equity.csv`, `account.json`, `signals/<date>.json`,
 `reports/<date>.md` (without the personal portfolio). Field definitions:
-[`docs/data_dictionary.md`](../data_dictionary.md).
+[`docs/architecture/data_dictionary.md`](../architecture/data_dictionary.md).
 
 ### 10.3 Analysis (RQ5)
 

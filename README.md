@@ -54,7 +54,7 @@ src/market_radar/
   pipeline.py    update / evaluate / backtest / daily
   cli.py         `market-radar` command
 tests/           pytest on synthetic data (no network)
-docs/            strategy/ (research design), data_dictionary.md, guide/ (setup), proposal/
+docs/            strategy/ (research design), architecture/ (system, data dictionary), guide/ (setup), proposal/
 .github/         ci.yml (lint + tests), daily.yml (05:30 ICT run)
 ```
 
@@ -84,7 +84,7 @@ market-radar daily --state-dir state --send   # the daily run
 ```
 
 Settings live in `config/settings.yaml`; outputs are described in
-[docs/data_dictionary.md](docs/data_dictionary.md).
+[docs/architecture/data_dictionary.md](docs/architecture/data_dictionary.md).
 
 ## Data
 
