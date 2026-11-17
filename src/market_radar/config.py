@@ -123,6 +123,7 @@ class TradingSettings:
     initial_capital_vnd: float = 100_000_000
     horizon: int = 5
     top_k: int = 5
+    rebalance_every_sessions: int = 5
     min_p_up: float = 0.40
     max_weight: float = 0.30
     stop_loss_pct: float = 7.0

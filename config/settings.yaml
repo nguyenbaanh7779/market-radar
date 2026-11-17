@@ -72,6 +72,7 @@ trading:
   initial_capital_vnd: 100000000
   horizon: 5                  # forecast horizon that drives the trades
   top_k: 5
+  rebalance_every_sessions: 5 # stop-losses are still checked every session
   min_p_up: 0.40
   max_weight: 0.30
   stop_loss_pct: 7.0

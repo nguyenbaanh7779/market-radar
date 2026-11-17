@@ -13,6 +13,7 @@ from market_radar.trader.metrics import performance_metrics, trading_metrics
 from market_radar.trader.strategy import (
     execute_orders,
     plan_orders,
+    rebalance_due,
     target_weights,
 )
 
@@ -55,7 +56,8 @@ def run_backtest(
     """Trade the forecasts session by session.
 
     After each close the strategy plans orders from that session's
-    forecasts; they are filled at the next session's close.
+    forecasts (stop-losses every session, the full rebalance every
+    ``rebalance_every_sessions``); they fill at the next session's close.
 
     Args:
         forecasts: Tradable stocks only: ``date``, ``symbol``, ``p_up``,
@@ -74,6 +76,7 @@ def run_backtest(
     by_date = dict(tuple(forecasts.groupby("date")))
     broker = PaperBroker(rules.initial_capital_vnd, rules)
     pending, trades, unfilled, rows = [], [], [], []
+    last_rebalance = None
     for i, session in enumerate(sessions):
         prices = closes.loc[session]
         done, missed = execute_orders(broker, pending, prices, session,
@@ -90,9 +93,13 @@ def run_backtest(
         })
         pending = []
         if session in by_date and i + 1 < len(sessions):
+            rebalance = rebalance_due(calendar, session, last_rebalance,
+                                      rules.rebalance_every_sessions)
             weights = target_weights(by_date[session], rules)
             pending = plan_orders(broker, weights, marks, session,
-                                  sessions[i + 1], calendar)
+                                  sessions[i + 1], calendar, rebalance)
+            if rebalance:
+                last_rebalance = session
     equity = pd.DataFrame(rows)
     benchmark = valued.loc[sessions, rules.benchmark].to_numpy()
     equity["benchmark_vnd"] = (rules.initial_capital_vnd * benchmark

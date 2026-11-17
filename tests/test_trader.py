@@ -128,3 +128,20 @@ def test_backtest_fills_at_next_close_and_respects_rules():
     summary = result.summary()
     assert summary.loc["strategy", "fees_vnd"] > 0
     assert summary.loc["benchmark", "total_return_pct"] == pytest.approx(5.0)
+
+
+def test_between_rebalances_only_stop_losses_are_planned():
+    broker = PaperBroker(100_000_000, RULES)
+    broker.buy("LOSER", 1000, 20.0, DAYS[0], "entry")
+    broker.buy("OLD", 1000, 10.0, DAYS[0], "entry")
+    prices = pd.Series({"LOSER": 18.5, "OLD": 10.0, "NEW": 50.0})
+    orders = plan_orders(broker, pd.Series({"NEW": 0.2}), prices, DAYS[2],
+                         DAYS[3], CALENDAR, rebalance=False)
+    assert [(o.symbol, o.reason) for o in orders] == [("LOSER", "stop_loss")]
+
+
+def test_rebalance_due():
+    from market_radar.trader.strategy import rebalance_due
+    assert rebalance_due(CALENDAR, DAYS[0], None, 5)
+    assert not rebalance_due(CALENDAR, DAYS[4], DAYS[0], 5)
+    assert rebalance_due(CALENDAR, DAYS[5], DAYS[0], 5)

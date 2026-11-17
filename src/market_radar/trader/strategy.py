@@ -62,6 +62,29 @@ def target_weights(
     return weights.clip(upper=rules.max_weight)
 
 
+def rebalance_due(
+    calendar: TradingCalendar,
+    session: pd.Timestamp,
+    last_rebalance: pd.Timestamp | None,
+    every: int,
+) -> bool:
+    """Tell whether the portfolio is rebalanced after this session.
+
+    Args:
+        calendar: Trading calendar.
+        session: Session just closed.
+        last_rebalance: Session of the previous rebalance, if any.
+        every: Sessions between rebalances.
+
+    Returns:
+        True on the first session and every ``every`` sessions after.
+    """
+    if last_rebalance is None:
+        return True
+    elapsed = calendar.position(session) - calendar.position(last_rebalance)
+    return elapsed >= every
+
+
 def plan_orders(
     broker: PaperBroker,
     weights: pd.Series,
@@ -69,12 +92,14 @@ def plan_orders(
     session: pd.Timestamp,
     next_session: pd.Timestamp,
     calendar: TradingCalendar,
+    rebalance: bool = True,
 ) -> list[Order]:
     """Plan the orders for the next session after the close of ``session``.
 
-    Holdings at or below the stop-loss, or no longer targeted, are sold
-    as soon as they have settled; targets below their weight are bought
-    in whole lots. Stopped-out stocks are not bought back the same day.
+    Holdings at or below the stop-loss are sold every session as soon as
+    they have settled. On rebalance sessions, holdings no longer targeted
+    are sold too and targets below their weight are bought in whole lots.
+    Stopped-out stocks are not bought back the same day.
 
     Args:
         broker: Current account.
@@ -83,6 +108,7 @@ def plan_orders(
         session: Session just closed.
         next_session: Session the orders are for.
         calendar: Trading calendar.
+        rebalance: Whether this is a rebalance session.
 
     Returns:
         Orders, sells first.
@@ -100,8 +126,10 @@ def plan_orders(
         if prices[symbol] <= stop_price:
             orders.append(Order(day, symbol, "sell", settled, "stop_loss"))
             stopped.add(symbol)
-        elif symbol not in weights.index:
+        elif rebalance and symbol not in weights.index:
             orders.append(Order(day, symbol, "sell", settled, "exit"))
+    if not rebalance:
+        return orders
     for symbol, weight in weights.items():
         price = prices.get(symbol, math.nan)
         if symbol in stopped or not price > 0:
