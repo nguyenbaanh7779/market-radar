@@ -62,6 +62,14 @@ market-radar daily --state-dir /tmp/mr-state   # one full run, prints the newsle
 published yet (Arena publishes overnight). Results go to `data/` and
 forward-test state to `state/` (both gitignored).
 
+### Telegram and other secrets
+
+```bash
+cp .env.example .env          # gitignored; fill in the values
+set -a; source .env; set +a   # once per terminal session
+market-radar daily --state-dir /tmp/mr-tg --send
+```
+
 ### Personal portfolio
 
 Copy `config/portfolio.example.yaml` to `config/portfolio.yaml`
