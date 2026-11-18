@@ -151,3 +151,31 @@ def test_vnstock_adapter_normalises_v6_frames():
                                   pd.Timestamp("2026-11-16")]
     assert bars["volume"].tolist() == [100.0, 200.0]
     assert markets[0].calls[0][3] == "1D"
+
+
+def test_arena_403_is_final_and_raises_access_denied():
+    from market_radar.data.sources import SourceAccessDenied
+    source, session = arena([FakeResponse({}, status=403),
+                             FakeResponse({}, status=403)])
+    with pytest.raises(SourceAccessDenied):
+        source.fetch("VCB", dt.date(2026, 11, 1), dt.date(2026, 11, 16))
+    assert len(session.calls) == 1
+
+
+def test_arena_404_is_final_without_retry():
+    from market_radar.data.sources import SourceAccessDenied
+    source, session = arena([FakeResponse({}, status=404),
+                             FakeResponse({}, status=404)])
+    with pytest.raises(SourceError) as info:
+        source.fetch("VCB", dt.date(2026, 11, 1), dt.date(2026, 11, 16))
+    assert not isinstance(info.value, SourceAccessDenied)
+    assert len(session.calls) == 1
+
+
+def test_arena_429_is_retried():
+    payload = {"success": True, "data": {"items": ARENA_ITEMS}}
+    source, session = arena([FakeResponse({}, status=429),
+                             FakeResponse(payload)])
+    assert len(source.fetch("VCB", dt.date(2026, 11, 1),
+                            dt.date(2026, 11, 16))) == 2
+    assert len(session.calls) == 2

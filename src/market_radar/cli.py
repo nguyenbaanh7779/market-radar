@@ -13,10 +13,12 @@ import pandas as pd
 from market_radar import __version__, pipeline
 from market_radar.config import Settings, load_settings
 from market_radar.data.quality import quality_report
+from market_radar.data.sources import SourceAccessDenied
 from market_radar.signals.tickers import ticker_flags
 
 logger = logging.getLogger("market_radar")
 EXIT_DATA_NOT_READY = 3
+EXIT_ACCESS_DENIED = 4
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -76,7 +78,8 @@ def main(argv: list[str] | None = None) -> int:
         argv: Arguments (default: ``sys.argv[1:]``).
 
     Returns:
-        Process exit code (3 when the data is not published yet).
+        Process exit code: 3 when the data is not published yet, 4 when
+        the data source refuses this machine.
     """
     args = build_parser().parse_args(argv)
     logging.basicConfig(
@@ -91,6 +94,9 @@ def main(argv: list[str] | None = None) -> int:
     except pipeline.DataNotReady as error:
         logger.warning("%s", error)
         return EXIT_DATA_NOT_READY
+    except SourceAccessDenied as error:
+        logger.error("Data source denied access: %s", error)
+        return EXIT_ACCESS_DENIED
 
 
 def cmd_update(settings: Settings, args: argparse.Namespace) -> int:

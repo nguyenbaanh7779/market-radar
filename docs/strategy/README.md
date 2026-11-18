@@ -25,6 +25,7 @@ them in the same change.
 | Daily bars from 2023 | Downloaded from 2019; samples still start 2023-01-01 | Indicator warm-up (MA50, RRG) and an optional 2022 bear-market check |
 | Banking group | Equal-weight `BANKS` basket as an instrument (Section 5.2) | Arena's `BANKING` instrument has no published definition |
 | Paper trading at closing prices | Decide after the close of *t*, fill at the close of *t* + 1; rebalance every 5 sessions (Section 9.1) | No decision uses a price it could not see; daily rebalancing turned over the portfolio ~130× a year |
+| Runs on GitHub Actions | Runs on the author's Mac via launchd (GitHub workflow kept, disabled) | Arena answers HTTP 403 to GitHub's cloud runners |
 | Dashboard and email delivery | Planned (TODO.md); Telegram first | The walking skeleton came first so the forward test could start early |
 
 ## 1. Background
@@ -239,7 +240,7 @@ planned (`feat/paper-trading-v1`).
 
 ### 10.1 Protocol
 
-GitHub Actions runs `market-radar daily` at 05:30 ICT on weekdays:
+A launchd job on the author's Mac runs `market-radar daily` at 05:30 ICT on weekdays (GitHub Actions was the plan, but Arena refuses cloud servers):
 update the bars, check the expected session has been published (else
 retry for up to 90 minutes), compute the signals, refit every model on
 all labels known at *t*, forecast every instrument for 1 and 5 sessions,
