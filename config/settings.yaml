@@ -1,0 +1,90 @@
+# market-radar settings. Paths are relative to the repository root.
+# Every value here is read by src/market_radar/config.py; unknown keys
+# raise an error so typos are caught early.
+
+paths:
+  data_dir: data          # raw bars, processed panel, evaluation results
+  state_dir: state        # forward-test state (the `data` branch in CI)
+
+data:
+  # arena: Arena (ckai.vn) public API -- no key, OHLC only (no volume),
+  #        bars for session D are published around 04:30 ICT on D+1.
+  # vnstock: vnstock v6 with your own broker API key (ssi, dnse, tcbs,
+  #          fhsc) -- adds volume; see docs/guide/README.md.
+  source: arena
+  fetch_start: "2019-01-01"   # history used for indicator warm-up
+  sample_start: "2023-01-01"  # first session used for training/evaluation
+  overlap_days: 15            # re-fetch window to pick up revised bars
+  arena:
+    base_url: https://ckai.vn/vi/api
+    timeout_s: 60
+    pause_s: 0.3
+    retries: 3
+  vnstock:
+    provider: ssi
+    pause_s: 3.5
+
+schedule:
+  timezone: Asia/Ho_Chi_Minh
+  # Days between a session and the morning its bars are available:
+  # 1 for Arena (published overnight), 0 for a same-evening source.
+  publish_lag_days: 1
+
+labels:
+  horizons: [1, 5]
+  sideway_band_pct: 0.2       # Arena's default sideways band
+
+features:
+  min_volume_coverage: 0.9    # volume features need this share of bars
+
+walk_forward:
+  min_train_sessions: 250
+  test_sessions: 21
+  embargo_sessions: 5
+
+models:
+  primary: logistic
+  candidates: [majority, momentum, logistic, gbdt]
+  logistic:
+    C: 0.1
+    max_iter: 2000
+  gbdt:
+    n_estimators: 300
+    learning_rate: 0.03
+    num_leaves: 15
+    min_child_samples: 200
+    subsample: 0.8
+    subsample_freq: 1
+    colsample_bytree: 0.8
+    reg_lambda: 1.0
+
+signals:
+  rsi_strong_low: 50
+  rsi_strong_high: 70
+  rsi_overbought: 75
+  volume_spike_ratio: 1.5
+  rrg_window: 50
+  rrg_momentum_lag: 10
+  vol_pctile_window: 250
+  high_vol_pctile: 0.8
+
+trading:
+  initial_capital_vnd: 100000000
+  horizon: 5                  # forecast horizon that drives the trades
+  top_k: 5
+  rebalance_every_sessions: 5 # stop-losses are still checked every session
+  min_p_up: 0.40
+  max_weight: 0.30
+  stop_loss_pct: 7.0
+  lot_size: 100
+  settlement_sessions: 2      # T+2: shares bought on t can be sold on t+2
+  buy_fee_pct: 0.15
+  sell_fee_pct: 0.15
+  sell_tax_pct: 0.10
+  price_unit_vnd: 1000        # bar prices are quoted in thousand VND
+  benchmark: VN30
+
+report:
+  language: vi                # newsletter language: vi or en
+  top_n: 5
+  outlook_symbols: [VNINDEX, VN30, BANKS]

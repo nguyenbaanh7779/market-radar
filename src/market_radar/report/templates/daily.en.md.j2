@@ -1,0 +1,65 @@
+{#- Daily newsletter, English. Rendered by market_radar.report.newsletter. -#}
+{%- macro proba(f) -%}
+{%- if f -%}{{ f.label }} {{ (f.p_up * 100)|num }}/{{ (f.p_sideway * 100)|num }}/{{ (f.p_down * 100)|num }}{%- else -%}n/a{%- endif -%}
+{%- endmacro -%}
+MARKET RADAR · {{ asof|day }} close · outlook for {{ next_session|day }}
+
+== Market ==
+VNINDEX {{ market.close|num(2) }} ({{ market.change_pct|pct }}) · VN30 {{ market.vn30_close|num(2) }} ({{ market.vn30_change_pct|pct }})
+Trend: {{ market.regime|t }} · 20-day volatility {{ market.vol_pct|num(1) }}% (percentile {{ (market.vol_pctile * 100)|num if market.vol_pctile is not none else "n/a" }})
+Breadth: {{ (market.breadth_up * 100)|num }}% of stocks up, {{ (market.breadth_above_ma20 * 100)|num }}% above MA20
+{%- if market.liquidity_ratio is not none %}
+Liquidity: {{ market.liquidity_ratio|num(2) }}x the 20-session average
+{%- endif %}
+
+== Outlook (P up / sideways / down, %) ==
+{%- for row in outlook %}
+{{ row.symbol }}: 1D {{ proba(row.h1) }} · 5D {{ proba(row.h5) }}
+{%- endfor %}
+
+== Sector rotation vs VNINDEX ==
+{%- for row in sectors_top %}
++ {{ row.sector|t }}: {{ row.quadrant|t }} (RS {{ row.rs_ratio|num(1) }}, momentum {{ row.rs_momentum|num(1) }})
+{%- endfor %}
+{%- for row in sectors_bottom %}
+- {{ row.sector|t }}: {{ row.quadrant|t }} (RS {{ row.rs_ratio|num(1) }}, momentum {{ row.rs_momentum|num(1) }})
+{%- endfor %}
+
+== Strongest 5-session outlook ==
+{%- for row in strong %}
+{{ loop.index }}. {{ row.symbol }} P(up) {{ (row.p_up * 100)|num }}% · {{ row.flag|t }}{% if row.reasons %} · {{ row.reasons|tr }}{% endif %}
+   drivers: {{ row.drivers or "n/a" }}
+{%- else %}
+(no stock qualifies today)
+{%- endfor %}
+
+== Watch out ==
+{%- for row in caution %}
+{{ loop.index }}. {{ row.symbol }} P(down) {{ (row.p_down * 100)|num }}% · {{ row.flag|t }}{% if row.reasons %} · {{ row.reasons|tr }}{% endif %}
+{%- else %}
+(nothing stands out)
+{%- endfor %}
+{%- if portfolio %}
+
+== Your portfolio ==
+Value {{ portfolio.value_vnd|num }} VND · P&L {{ portfolio.pnl_vnd|num }} VND ({{ portfolio.pnl_pct|pct }})
+{%- if portfolio.benchmark_return_pct is not none %}
+{{ portfolio.benchmark }} since start: {{ portfolio.benchmark_return_pct|pct }}
+{%- endif %}
+Concentration (HHI): {{ portfolio.hhi|num(2) }} · top contributor {{ portfolio.top_contributor }}
+{%- for line in portfolio.warnings %}
+! {{ line|tr }}
+{%- endfor %}
+{%- endif %}
+
+== Paper trading ==
+{%- if paper.started %}
+Equity {{ paper.equity_vnd|num }} VND ({{ paper.return_pct|pct }} since {{ paper.started|day }}) vs {{ paper.benchmark }} {{ paper.benchmark_return_pct|pct }}
+Holdings: {% for h in paper.holdings %}{{ h.symbol }} {{ h.quantity|num }}{{ ", " if not loop.last }}{% else %}cash only{% endfor %}
+Orders for {{ next_session|day }}: {% for o in paper.orders %}{{ o.side|t }} {{ o.symbol }} {{ o.quantity|num }} ({{ o.reason|t }}){{ ", " if not loop.last }}{% else %}none{% endfor %}
+{%- else %}
+Starts with the next session.
+{%- endif %}
+
+Models: {{ models }} · data: {{ data_source }}{{ "" if has_volume else ", no volume" }}
+Research prototype for a course project, not investment advice.

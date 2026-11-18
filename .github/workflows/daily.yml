@@ -1,0 +1,99 @@
+# Runs the agent once per trading day and commits the forward-test state
+# (predictions, resolutions, paper account, newsletter) to the `data`
+# branch. Arena publishes the bars of session D around 04:30 ICT on D+1,
+# so the run starts at 05:30 ICT and the forecasts reach Arena's 08:05
+# cutoff for the same day. Setup: docs/guide/README.md.
+name: daily
+
+on:
+  schedule:
+    - cron: "30 22 * * 0-4"   # 05:30 ICT, Monday to Friday
+  workflow_dispatch:
+    inputs:
+      commit_state:
+        description: Commit the forward-test state to the data branch
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PORTFOLIO_YAML: ${{ secrets.PORTFOLIO_YAML }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          pip install -e . --no-deps
+
+      - name: Restore market data
+        uses: actions/cache/restore@v4
+        with:
+          path: data/raw
+          key: bars-${{ github.run_id }}
+          restore-keys: bars-
+
+      - name: Check out the forward-test state (data branch)
+        run: |
+          git config --global user.name "market-radar-bot"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin data >/dev/null; then
+            git fetch origin data
+            git worktree add state origin/data
+          else
+            git worktree add --orphan -b data state
+          fi
+
+      - name: Write the portfolio from its secret
+        if: env.PORTFOLIO_YAML != ''
+        run: printf '%s\n' "$PORTFOLIO_YAML" > config/portfolio.yaml
+
+      - name: Run the agent (waits while the bars are not published)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            status=0
+            market-radar daily --state-dir state --send || status=$?
+            if [ "$status" -ne 3 ]; then exit "$status"; fi
+            echo "Bars not published yet (attempt $attempt); retrying in 15 minutes"
+            sleep 900
+          done
+          exit 3
+
+      - name: Commit the forward-test state
+        if: github.event_name == 'schedule' || inputs.commit_state
+        run: |
+          cd state
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit"
+            exit 0
+          fi
+          git commit -m "state: forward run $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push origin HEAD:data
+
+      - name: Save market data
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/raw
+          key: bars-${{ github.run_id }}

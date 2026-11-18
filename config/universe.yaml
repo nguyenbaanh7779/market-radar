@@ -1,0 +1,44 @@
+# Instrument universe. Every stock below is covered by the Arena (ckai.vn)
+# EOD market-bars API, which is also what Arena scores predictions against.
+as_of: "2026-11-17"
+
+indices: [VNINDEX, VN30]
+
+banks: &banks [ABB, ACB, BID, BVB, CTG, EIB, HDB, LPB, MBB, MSB, NAB, OCB,
+               SHB, SSB, STB, TCB, TPB, VCB, VIB, VPB]
+
+# Synthetic equal-weight baskets, forecast like any other instrument.
+# BANKS stands in for Arena's BANKING instrument, whose definition is not
+# published (open question in docs/strategy/README.md).
+baskets:
+  BANKS: banking
+
+vn30:
+  # Reconstructed from HOSE review announcements: May 2026 (+BSR, -DGC)
+  # and July 2026, effective 2026-08-03 (+MCH, +TCX, -TPB, -PLX).
+  # Not checked against the official list yet -- see TODO.md.
+  verified: false
+  members: [ACB, BID, BSR, BVH, CTG, FPT, GAS, GVR, HDB, HPG, LPB, MBB,
+            MCH, MSN, MWG, SAB, SHB, SSB, SSI, STB, TCB, TCX, VCB, VHM,
+            VIB, VIC, VJC, VNM, VPB, VRE]
+
+# Eight sectors with representative stocks (one sector per stock).
+sectors:
+  banking: *banks
+  real_estate: [VHM, VIC, VRE, NVL, KDH, DXG, NLG, PDR, DIG]
+  securities: [SSI, VND, HCM, VCI, SHS, VIX, MBS, FTS, TCX]
+  materials: [HPG, HSG, NKG, DGC, DPM, DCM]
+  consumer: [MWG, PNJ, FRT, DGW, MSN, VNM, SAB, MCH]
+  technology: [FPT, CMG, CTR, VGI, ELC]
+  energy: [GAS, PLX, PVD, PVS, BSR, POW, PVT]
+  industrials: [KBC, IDC, SZC, BCM, GVR, VCG, CTD, HHV, PC1, GMD, VJC]
+
+# Listings outside HOSE (HOSE is the default). Used for daily price limits.
+exchanges:
+  HNX: [SHS, MBS, PVS, IDC]
+  UPCOM: [ABB, BVB, VGI]
+
+price_limits_pct:
+  HOSE: 7.0
+  HNX: 10.0
+  UPCOM: 15.0
