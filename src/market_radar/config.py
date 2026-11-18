@@ -143,6 +143,9 @@ class ReportSettings:
     language: str = "vi"
     top_n: int = 5
     outlook_symbols: tuple[str, ...] = ("VNINDEX", "VN30", "BANKS")
+    guide_url: str = (
+        "https://github.com/nguyenbaanh7779/market-radar/blob/main/docs/"
+        "guide/newsletter-vi.md")
 
 
 @dataclasses.dataclass(frozen=True)

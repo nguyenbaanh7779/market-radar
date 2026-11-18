@@ -1,65 +1,88 @@
-{#- Daily newsletter, English. Rendered by market_radar.report.newsletter. -#}
+{#- Daily newsletter, English: plain words first, the numbers in brackets. -#}
 {%- macro proba(f) -%}
-{%- if f -%}{{ f.label }} {{ (f.p_up * 100)|num }}/{{ (f.p_sideway * 100)|num }}/{{ (f.p_down * 100)|num }}{%- else -%}n/a{%- endif -%}
+{%- if f -%}{{ f.p_max|conf(f.label) }} (up {{ (f.p_up * 100)|num }}% · sideways {{ (f.p_sideway * 100)|num }}% · down {{ (f.p_down * 100)|num }}%){%- else -%}no forecast{%- endif -%}
 {%- endmacro -%}
 MARKET RADAR · {{ asof|day }} close · outlook for {{ next_session|day }}
 
-== Market ==
+📌 SUMMARY
+{%- for line in summary %}
+{{ line }}
+{%- endfor %}
+
+== MARKET ON {{ asof|day }} ==
 VNINDEX {{ market.close|num(2) }} ({{ market.change_pct|pct }}) · VN30 {{ market.vn30_close|num(2) }} ({{ market.vn30_change_pct|pct }})
-Trend: {{ market.regime|t }} · 20-day volatility {{ market.vol_pct|num(1) }}% (percentile {{ (market.vol_pctile * 100)|num if market.vol_pctile is not none else "n/a" }})
-Breadth: {{ (market.breadth_up * 100)|num }}% of stocks up, {{ (market.breadth_above_ma20 * 100)|num }}% above MA20
-{%- if market.liquidity_ratio is not none %}
-Liquidity: {{ market.liquidity_ratio|num(2) }}x the 20-session average
+• Trend: {{ market_plain.trend }}
+• {{ market_plain.volatility }}
+• {{ market_plain.breadth }}
+{%- if market_plain.liquidity %}
+• {{ market_plain.liquidity }}
 {%- endif %}
 
-== Outlook (P up / sideways / down, %) ==
+== INDEX OUTLOOK ==
 {%- for row in outlook %}
-{{ row.symbol }}: 1D {{ proba(row.h1) }} · 5D {{ proba(row.h5) }}
+{{ row.symbol }}
+  · Next session: {{ proba(row.h1) }}
+  · Next 5 sessions: {{ proba(row.h5) }}
 {%- endfor %}
 
-== Sector rotation vs VNINDEX ==
+== STRONGEST SECTORS VS THE MARKET ==
 {%- for row in sectors_top %}
-+ {{ row.sector|t }}: {{ row.quadrant|t }} (RS {{ row.rs_ratio|num(1) }}, momentum {{ row.rs_momentum|num(1) }})
-{%- endfor %}
-{%- for row in sectors_bottom %}
-- {{ row.sector|t }}: {{ row.quadrant|t }} (RS {{ row.rs_ratio|num(1) }}, momentum {{ row.rs_momentum|num(1) }})
+↑ {{ row.sector|t }}: {{ row.plain }}
 {%- endfor %}
 
-== Strongest 5-session outlook ==
+== WEAKEST SECTORS ==
+{%- for row in sectors_bottom %}
+↓ {{ row.sector|t }}: {{ row.plain }}
+{%- endfor %}
+
+== STOCKS TO WATCH (next 5 sessions) ==
 {%- for row in strong %}
-{{ loop.index }}. {{ row.symbol }} P(up) {{ (row.p_up * 100)|num }}% · {{ row.flag|t }}{% if row.reasons %} · {{ row.reasons|tr }}{% endif %}
-   drivers: {{ row.drivers or "n/a" }}
+{{ loop.index }}. {{ row.symbol }} — chance of rising {{ (row.p_up * 100)|num }}% ({{ row.confidence }})
+{%- if row.flag != "neutral" %}
+   Technical signal: {{ row.flag|t }}{% if row.reasons %} ({{ row.reasons|tr }}){% endif %}
+{%- endif %}
+   Why: {{ row.why or "no explanation" }}{% if row.reversal %} → {{ row.reversal }}{% endif %}
 {%- else %}
 (no stock qualifies today)
 {%- endfor %}
 
-== Watch out ==
+== WATCH OUT ==
 {%- for row in caution %}
-{{ loop.index }}. {{ row.symbol }} P(down) {{ (row.p_down * 100)|num }}% · {{ row.flag|t }}{% if row.reasons %} · {{ row.reasons|tr }}{% endif %}
+{{ loop.index }}. {{ row.symbol }} — chance of falling {{ (row.p_down * 100)|num }}% ({{ row.confidence }})
+{%- if row.flag != "neutral" %}
+   Technical signal: {{ row.flag|t }}{% if row.reasons %} ({{ row.reasons|tr }}){% endif %}
+{%- endif %}
+   Why: {{ row.why or "no explanation" }}{% if row.reversal %} → {{ row.reversal }}{% endif %}
 {%- else %}
 (nothing stands out)
 {%- endfor %}
 {%- if portfolio %}
 
-== Your portfolio ==
+== YOUR PORTFOLIO ==
 Value {{ portfolio.value_vnd|num }} VND · P&L {{ portfolio.pnl_vnd|num }} VND ({{ portfolio.pnl_pct|pct }})
 {%- if portfolio.benchmark_return_pct is not none %}
-{{ portfolio.benchmark }} since start: {{ portfolio.benchmark_return_pct|pct }}
+Compared with {{ portfolio.benchmark }} over the same period: {{ portfolio.benchmark_return_pct|pct }}
 {%- endif %}
-Concentration (HHI): {{ portfolio.hhi|num(2) }} · top contributor {{ portfolio.top_contributor }}
+Concentration: {{ "high" if portfolio.hhi >= 0.25 else "moderate" }} (HHI {{ portfolio.hhi|num(2) }}) · top contributor {{ portfolio.top_contributor }}
 {%- for line in portfolio.warnings %}
 ! {{ line|tr }}
 {%- endfor %}
 {%- endif %}
 
-== Paper trading ==
+== PAPER TRADING (simulated account) ==
 {%- if paper.started %}
-Equity {{ paper.equity_vnd|num }} VND ({{ paper.return_pct|pct }} since {{ paper.started|day }}) vs {{ paper.benchmark }} {{ paper.benchmark_return_pct|pct }}
+Equity {{ paper.equity_vnd|num }} VND ({{ paper.return_pct|pct }} since {{ paper.started|day }}) · {{ paper.benchmark }} {{ paper.benchmark_return_pct|pct }}
 Holdings: {% for h in paper.holdings %}{{ h.symbol }} {{ h.quantity|num }}{{ ", " if not loop.last }}{% else %}cash only{% endfor %}
-Orders for {{ next_session|day }}: {% for o in paper.orders %}{{ o.side|t }} {{ o.symbol }} {{ o.quantity|num }} ({{ o.reason|t }}){{ ", " if not loop.last }}{% else %}none{% endfor %}
+Orders for {{ next_session|day }} (filled at the close):
+{%- for o in paper.orders %}
+• {{ o.side|t }} {{ o.symbol }} {{ o.quantity|num }}{% if o.reason != "entry" %} ({{ o.reason|t }}){% endif %}{% if o.side == "buy" and o.p_up is not none %} — chance of rising {{ (o.p_up * 100)|num }}% ({{ o.p_up|conf("UP") }}){% endif %}{% if o.flag == "caution" %}; note: technical caution signal{% endif %}
+{%- else %}
+• none
+{%- endfor %}
 {%- else %}
 Starts with the next session.
 {%- endif %}
 
+ℹ️ How to read this newsletter: {{ guide_url }}
 Models: {{ models }} · data: {{ data_source }}{{ "" if has_volume else ", no volume" }}
 Research prototype for a course project, not investment advice.

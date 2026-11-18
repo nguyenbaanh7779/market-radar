@@ -46,7 +46,10 @@ def test_daily_run_is_complete_and_idempotent(ready):
     instruments = 2 + 1 + 6                             # indices, basket
     assert first.new_predictions == instruments * 2 * 4
     assert "MARKET RADAR" in first.report
-    assert "Giao dịch mô phỏng" in first.report          # default: vi
+    assert "GIAO DỊCH MÔ PHỎNG" in first.report          # default: vi
+    assert "📌 TÓM TẮT" in first.report
+    assert "Vì sao:" in first.report
+    assert "Cách đọc bản tin: https://" in first.report
     state = ForwardState(ready.state_dir)
     predictions = state.read("predictions")
     assert set(predictions["horizon"]) == {1, 5}
@@ -95,8 +98,8 @@ def test_portfolio_section_only_in_sent_copy(ready, tmp_path, monkeypatch):
     monkeypatch.setenv("MARKET_RADAR_PORTFOLIO", str(path))
     asof = ALL["date"][ALL["date"] < LAST].max()
     outcome = run_daily(ready, morning_after(asof))
-    assert "Danh mục của bạn" in outcome.report
-    assert "Danh mục của bạn" not in outcome.report_path.read_text()
+    assert "DANH MỤC CỦA BẠN" in outcome.report
+    assert "DANH MỤC CỦA BẠN" not in outcome.report_path.read_text()
 
 
 def test_english_newsletter(ready):
@@ -104,8 +107,9 @@ def test_english_newsletter(ready):
         ready, report=dataclasses.replace(ready.report, language="en"))
     asof = ALL["date"][ALL["date"] < LAST].max()
     outcome = run_daily(settings, morning_after(asof))
-    assert "Paper trading" in outcome.report
-    assert "Giao dịch" not in outcome.report
+    assert "PAPER TRADING" in outcome.report
+    assert "📌 SUMMARY" in outcome.report
+    assert "GIAO DỊCH" not in outcome.report
 
 
 def test_vietnamese_formatting():

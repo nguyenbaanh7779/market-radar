@@ -84,6 +84,7 @@ market-radar backtest    # paper trading on the out-of-sample forecasts vs VN30
 market-radar daily --state-dir state --send   # the daily run
 ```
 
+The newsletter is in Vietnamese; how to read it: [docs/guide/newsletter-vi.md](docs/guide/newsletter-vi.md).
 Settings live in `config/settings.yaml`; outputs are described in
 [docs/architecture/data_dictionary.md](docs/architecture/data_dictionary.md).
 
