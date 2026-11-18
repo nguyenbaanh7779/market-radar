@@ -1,0 +1,462 @@
+{
+  "asof": "2026-11-18",
+  "market": {
+    "idx_close": 1703.01,
+    "idx_ret_1": -0.0137312361,
+    "idx_ret_5": -0.0251245063,
+    "idx_ret_20": -0.02050993,
+    "idx_dist_ma20": -0.0205302104,
+    "idx_dist_ma50": -0.0285025302,
+    "idx_ma20_ma50": -0.0081394238,
+    "idx_vol_20": 0.1536611273,
+    "idx_vol_pctile": 0.368,
+    "breadth_up": 0.0933333333,
+    "breadth_above_ma20": 0.1866666667,
+    "liquidity_ratio": null,
+    "regime": "downtrend",
+    "high_vol": false
+  },
+  "sectors": [
+    {
+      "sector": "real_estate",
+      "rs_ratio": 105.0978017819,
+      "rs_momentum": 105.4449978902,
+      "quadrant": "leading",
+      "score": 10.542799672,
+      "rank": 1
+    },
+    {
+      "sector": "securities",
+      "rs_ratio": 101.06153944,
+      "rs_momentum": 100.1464578947,
+      "quadrant": "leading",
+      "score": 1.2079973347,
+      "rank": 2
+    },
+    {
+      "sector": "industrials",
+      "rs_ratio": 102.7112483727,
+      "rs_momentum": 97.9983079038,
+      "quadrant": "weakening",
+      "score": 0.7095562765,
+      "rank": 3
+    },
+    {
+      "sector": "banking",
+      "rs_ratio": 99.5911583554,
+      "rs_momentum": 98.6891145734,
+      "quadrant": "lagging",
+      "score": -1.7197270712,
+      "rank": 4
+    },
+    {
+      "sector": "consumer",
+      "rs_ratio": 95.2944197595,
+      "rs_momentum": 102.1072758603,
+      "quadrant": "improving",
+      "score": -2.5983043803,
+      "rank": 5
+    },
+    {
+      "sector": "materials",
+      "rs_ratio": 99.0441609997,
+      "rs_momentum": 95.0084092514,
+      "quadrant": "lagging",
+      "score": -5.947429749,
+      "rank": 6
+    },
+    {
+      "sector": "energy",
+      "rs_ratio": 91.300841142,
+      "rs_momentum": 94.9660146062,
+      "quadrant": "lagging",
+      "score": -13.7331442518,
+      "rank": 7
+    },
+    {
+      "sector": "technology",
+      "rs_ratio": 86.2662442747,
+      "rs_momentum": 93.9126750491,
+      "quadrant": "lagging",
+      "score": -19.8210806762,
+      "rank": 8
+    }
+  ],
+  "flags": [
+    {
+      "symbol": "ABB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "ACB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "BCM",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "BID",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "BSR",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "BVB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "BVH",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "CMG",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "CTD",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 57"
+    },
+    {
+      "symbol": "CTG",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "CTR",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "DCM",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "DGC",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "DGW",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "DIG",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 52"
+    },
+    {
+      "symbol": "DPM",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "DXG",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 61"
+    },
+    {
+      "symbol": "EIB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "ELC",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "FPT",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "FRT",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 56"
+    },
+    {
+      "symbol": "FTS",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "GAS",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "GMD",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "GVR",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "HCM",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "HDB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "HHV",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "HPG",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "HSG",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "IDC",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "KBC",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "KDH",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 64"
+    },
+    {
+      "symbol": "LPB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "MBB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "MBS",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "MSB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "MSN",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "MWG",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "NAB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "NKG",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "NLG",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 56"
+    },
+    {
+      "symbol": "NVL",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "OCB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "PC1",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "PDR",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "PLX",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "PNJ",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "POW",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "PVD",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "PVS",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "PVT",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "SAB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "SHB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "SHS",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 50"
+    },
+    {
+      "symbol": "SSB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "SSI",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "STB",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "SZC",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "TCB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "TCX",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "TPB",
+      "flag": "caution",
+      "reasons": "below lower Bollinger band"
+    },
+    {
+      "symbol": "VCB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "VCG",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "VCI",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "VGI",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "VHM",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "VIB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "VIC",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 60"
+    },
+    {
+      "symbol": "VIX",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "VJC",
+      "flag": "strong",
+      "reasons": "uptrend (close > MA20 > MA50); MACD histogram > 0; RSI 68"
+    },
+    {
+      "symbol": "VND",
+      "flag": "neutral",
+      "reasons": ""
+    },
+    {
+      "symbol": "VNM",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD; below lower Bollinger band"
+    },
+    {
+      "symbol": "VPB",
+      "flag": "caution",
+      "reasons": "below MA50 with negative MACD"
+    },
+    {
+      "symbol": "VRE",
+      "flag": "neutral",
+      "reasons": ""
+    }
+  ]
+}
