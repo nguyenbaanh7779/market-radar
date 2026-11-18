@@ -62,6 +62,8 @@ market-radar daily --state-dir /tmp/mr-state   # one full run, prints the newsle
 published yet (Arena publishes overnight). Results go to `data/` and
 forward-test state to `state/` (both gitignored).
 
+Reading the newsletter (in Vietnamese, for its readers): [newsletter-vi.md](newsletter-vi.md).
+
 ### Telegram and other secrets
 
 ```bash

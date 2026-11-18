@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file. The format is b
 
 - Run the daily job on a Mac with launchd, since Arena refuses GitHub's runners ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`cef688c`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/cef688c3392319eca7ad5ecd5bbc0de9d4ac2bda))
 
+### Changed
+
+- Write the newsletter in plain language: a summary, words first with the real numbers in brackets, confidence words and reasons per stock ([#4](https://github.com/nguyenbaanh7779/market-radar/pull/4), [`2c71314`](https://github.com/nguyenbaanh7779/market-radar/pull/4/commits/2c71314173110406d7b86c03da184f98e489e1e7))
+
 ### Fixed
 
 - Stop retrying when the data source refuses access (HTTP 401/403) and exit with code 4 ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`94afc4a`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/94afc4a906e4dae10a662bded97c0608ef0f7d6c))

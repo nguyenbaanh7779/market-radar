@@ -86,5 +86,7 @@ trading:
 
 report:
   language: vi                # newsletter language: vi or en
-  top_n: 5
+  top_n: 4                   # stocks per list (keeps one Telegram message)
   outlook_symbols: [VNINDEX, VN30, BANKS]
+  # "How to read the newsletter" page linked at the end of every issue
+  guide_url: https://github.com/nguyenbaanh7779/market-radar/blob/main/docs/guide/newsletter-vi.md

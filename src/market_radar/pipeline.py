@@ -480,10 +480,14 @@ def report_context(
     asof = data.asof
     stocks = list(settings.universe.stocks)
     primary = settings.models.primary
+    language = settings.report.language
+    features = data.panel[data.panel["date"] == asof].set_index("symbol")
     strong, caution = newsletter.ranked_stocks(
         forecasts, flags, stocks, primary, settings.trading.horizon,
-        settings.report.top_n)
+        settings.report.top_n, features, language)
     top, bottom = newsletter.sector_rows(data.rotation, asof)
+    for row in top + bottom:
+        row["plain"] = newsletter.sector_plain(row, language)
     quadrants = (data.rotation[data.rotation["date"] == asof]
                  .set_index("sector")["quadrant"].to_dict())
     holdings, since = load_holdings(portfolio_path(settings))
@@ -491,22 +495,59 @@ def report_context(
         holdings, data.closes, asof, settings.universe.sector_of,
         quadrants, flags, settings.trading.benchmark, since,
         settings.trading.price_unit_vnd)
+    market = newsletter.market_summary(data.market, data.closes, asof)
+    outlook = newsletter.outlook_rows(
+        forecasts, list(settings.report.outlook_symbols), primary)
     return {
         "asof": asof.date().isoformat(),
         "next_session": next_session.date().isoformat(),
-        "market": newsletter.market_summary(data.market, data.closes, asof),
-        "outlook": newsletter.outlook_rows(
-            forecasts, list(settings.report.outlook_symbols), primary),
+        "summary": newsletter.summary_lines(market, top, bottom, outlook,
+                                            language),
+        "market": market,
+        "market_plain": newsletter.market_plain(market, language),
+        "outlook": outlook,
         "sectors_top": top,
         "sectors_bottom": bottom,
         "strong": strong,
         "caution": caution,
         "portfolio": portfolio,
-        "paper": paper,
+        "paper": _explain_orders(paper, forecasts, flags, settings),
+        "guide_url": settings.report.guide_url,
         "models": f"{primary} (v{settings.fingerprint()})",
         "data_source": settings.data.source,
         "has_volume": data.has_volume,
     }
+
+
+def _explain_orders(
+    paper: dict[str, Any],
+    forecasts: pd.DataFrame,
+    flags: pd.DataFrame,
+    settings: Settings,
+) -> dict[str, Any]:
+    """Add the reason behind each planned paper order.
+
+    Args:
+        paper: Paper-trading summary (orders as dicts).
+        forecasts: Today's prediction rows.
+        flags: Technical flags by symbol.
+        settings: Run settings.
+
+    Returns:
+        A copy of ``paper`` whose orders carry ``p_up`` (trading horizon,
+        primary model) and the stock's technical ``flag``.
+    """
+    if not paper.get("started"):
+        return paper
+    chosen = forecasts[(forecasts["model"] == settings.models.primary)
+                       & (forecasts["horizon"] == settings.trading.horizon)]
+    p_up = chosen.set_index("symbol")["p_up"].to_dict()
+    orders = [
+        {**order, "p_up": p_up.get(order["symbol"]),
+         "flag": flags["flag"].get(order["symbol"], "n/a")}
+        for order in paper["orders"]
+    ]
+    return {**paper, "orders": orders}
 
 
 def signals_snapshot(
