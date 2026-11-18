@@ -85,5 +85,6 @@ trading:
   benchmark: VN30
 
 report:
+  language: vi                # newsletter language: vi or en
   top_n: 5
   outlook_symbols: [VNINDEX, VN30, BANKS]

@@ -293,10 +293,12 @@ def daily(
                              next_session)
     state.write_text("signals", asof, ".json",
                      signals_snapshot(data, flags, asof))
+    language = settings.report.language
     path = state.write_text(
         "reports", asof, ".md",
-        newsletter.render(context, include_portfolio=False))
-    report = newsletter.render(context)
+        newsletter.render(context, include_portfolio=False,
+                          language=language))
+    report = newsletter.render(context, language=language)
     outcome = DailyOutcome(asof, next_session, new, len(resolved), path,
                            report)
     if send and new:
@@ -440,11 +442,8 @@ def paper_summary(
     benchmark = data.closes[rules.benchmark].dropna()
     base = benchmark.loc[to_day(started):].iloc[0]
     equity = broker.equity_vnd(marks)
-    holdings = ", ".join(
-        f"{s} {broker.quantity(s)}" for s in broker.symbols())
-    orders = ", ".join(
-        f"{o['side']} {o['symbol']} {o['quantity']} ({o['reason']})"
-        for o in meta["pending"])
+    holdings = [{"symbol": s, "quantity": broker.quantity(s)}
+                for s in broker.symbols()]
     return {
         "started": started,
         "equity_vnd": equity,
@@ -453,7 +452,7 @@ def paper_summary(
         "benchmark_return_pct": 100.0 * (benchmark.loc[data.asof] / base
                                          - 1.0),
         "holdings": holdings,
-        "orders": orders,
+        "orders": list(meta["pending"]),
     }
 
 
@@ -492,8 +491,6 @@ def report_context(
         holdings, data.closes, asof, settings.universe.sector_of,
         quadrants, flags, settings.trading.benchmark, since,
         settings.trading.price_unit_vnd)
-    source = settings.data.source
-    note = f"{source} bars" + ("" if data.has_volume else ", no volume")
     return {
         "asof": asof.date().isoformat(),
         "next_session": next_session.date().isoformat(),
@@ -507,7 +504,8 @@ def report_context(
         "portfolio": portfolio,
         "paper": paper,
         "models": f"{primary} (v{settings.fingerprint()})",
-        "data_note": note,
+        "data_source": settings.data.source,
+        "has_volume": data.has_volume,
     }
 
 

@@ -140,6 +140,7 @@ class TradingSettings:
 class ReportSettings:
     """Newsletter options."""
 
+    language: str = "vi"
     top_n: int = 5
     outlook_symbols: tuple[str, ...] = ("VNINDEX", "VN30", "BANKS")
 

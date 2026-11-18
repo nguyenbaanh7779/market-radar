@@ -73,7 +73,7 @@ first described.
 
 | Feature | What the user gets |
 |---|---|
-| Daily newsletter | Telegram (email later): the market, sectors attracting money, stocks with strong signals, stocks to watch out for |
+| Daily newsletter | Telegram (email later), in Vietnamese for Vietnamese readers (`report.language`, `en` also available): the market, sectors attracting money, stocks with strong signals, stocks to watch out for |
 | Daily dashboard | Overview → sector → stock → portfolio (allocation, P&L against VN30, paper-trading record) — planned, TODO.md |
 | Explanation and confidence | Drivers of each forecast (logistic contributions, TreeSHAP for LightGBM), probabilities, past hit rate |
 

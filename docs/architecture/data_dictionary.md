@@ -109,7 +109,7 @@ One row per instrument (stocks, indices, BANKS) and session.
 | `equity.csv` | `date`, `equity_vnd`, `cash_vnd`, `positions`, `benchmark_close` |
 | `account.json` | Cash, lots (quantity, price, fill session), `started`, `last_session`, pending orders |
 | `signals/<date>.json` | Market state, sector rotation and ticker flags of the session |
-| `reports/<date>.md` | The newsletter without the personal portfolio section |
+| `reports/<date>.md` | The newsletter in `report.language` (Vietnamese by default), without the personal portfolio section |
 
 ## 7. Configuration — `config/`
 

@@ -46,7 +46,7 @@ def test_daily_run_is_complete_and_idempotent(ready):
     instruments = 2 + 1 + 6                             # indices, basket
     assert first.new_predictions == instruments * 2 * 4
     assert "MARKET RADAR" in first.report
-    assert "Paper trading" in first.report
+    assert "Giao dịch mô phỏng" in first.report          # default: vi
     state = ForwardState(ready.state_dir)
     predictions = state.read("predictions")
     assert set(predictions["horizon"]) == {1, 5}
@@ -95,8 +95,30 @@ def test_portfolio_section_only_in_sent_copy(ready, tmp_path, monkeypatch):
     monkeypatch.setenv("MARKET_RADAR_PORTFOLIO", str(path))
     asof = ALL["date"][ALL["date"] < LAST].max()
     outcome = run_daily(ready, morning_after(asof))
-    assert "Your portfolio" in outcome.report
-    assert "Your portfolio" not in outcome.report_path.read_text()
+    assert "Danh mục của bạn" in outcome.report
+    assert "Danh mục của bạn" not in outcome.report_path.read_text()
+
+
+def test_english_newsletter(ready):
+    settings = dataclasses.replace(
+        ready, report=dataclasses.replace(ready.report, language="en"))
+    asof = ALL["date"][ALL["date"] < LAST].max()
+    outcome = run_daily(settings, morning_after(asof))
+    assert "Paper trading" in outcome.report
+    assert "Giao dịch" not in outcome.report
+
+
+def test_vietnamese_formatting():
+    from market_radar.report import newsletter as n
+    assert n.format_number(1234567.891, 2, "vi") == "1.234.567,89"
+    assert n.format_percent(-0.5, 2, "vi") == "-0,50%"
+    assert n.format_day("2026-11-16", "vi") == "16/11/2026"
+    assert n.translate_term("lagging", "vi") == "tụt hậu"
+    assert n.translate_text("BBB: weak technical signal, sector is lagging",
+                            "vi") == ("BBB: tín hiệu kỹ thuật yếu, "
+                                      "ngành đang tụt hậu")
+    with pytest.raises(ValueError):
+        n.render({}, language="fr")
 
 
 def test_evaluate_and_backtest_write_results(ready):

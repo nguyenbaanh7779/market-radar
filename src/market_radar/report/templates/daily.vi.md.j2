@@ -1,0 +1,65 @@
+{#- Bản tin hằng ngày, tiếng Việt. Rendered by market_radar.report.newsletter. -#}
+{%- macro proba(f) -%}
+{%- if f -%}{{ f.label|t }} {{ (f.p_up * 100)|num }}/{{ (f.p_sideway * 100)|num }}/{{ (f.p_down * 100)|num }}{%- else -%}chưa có{%- endif -%}
+{%- endmacro -%}
+MARKET RADAR · phiên {{ asof|day }} · nhận định cho phiên {{ next_session|day }}
+
+== Thị trường ==
+VNINDEX {{ market.close|num(2) }} ({{ market.change_pct|pct }}) · VN30 {{ market.vn30_close|num(2) }} ({{ market.vn30_change_pct|pct }})
+Xu hướng: {{ market.regime|t }} · Biến động 20 phiên: {{ market.vol_pct|num(1) }}%/năm (bách phân vị {{ (market.vol_pctile * 100)|num if market.vol_pctile is not none else "chưa có" }})
+Độ rộng: {{ (market.breadth_up * 100)|num }}% số mã tăng, {{ (market.breadth_above_ma20 * 100)|num }}% số mã nằm trên MA20
+{%- if market.liquidity_ratio is not none %}
+Thanh khoản: gấp {{ market.liquidity_ratio|num(2) }} lần trung bình 20 phiên
+{%- endif %}
+
+== Dự báo chỉ số (xác suất Tăng / Đi ngang / Giảm, %) ==
+{%- for row in outlook %}
+{{ row.symbol }}: 1 phiên {{ proba(row.h1) }} · 5 phiên {{ proba(row.h5) }}
+{%- endfor %}
+
+== Dòng tiền ngành so với VNINDEX ==
+{%- for row in sectors_top %}
++ {{ row.sector|t }}: {{ row.quadrant|t }} (sức mạnh {{ row.rs_ratio|num(1) }}; động lượng {{ row.rs_momentum|num(1) }})
+{%- endfor %}
+{%- for row in sectors_bottom %}
+- {{ row.sector|t }}: {{ row.quadrant|t }} (sức mạnh {{ row.rs_ratio|num(1) }}; động lượng {{ row.rs_momentum|num(1) }})
+{%- endfor %}
+
+== Cổ phiếu triển vọng nhất (5 phiên) ==
+{%- for row in strong %}
+{{ loop.index }}. {{ row.symbol }} · xác suất tăng {{ (row.p_up * 100)|num }}% · tín hiệu {{ row.flag|t }}{% if row.reasons %} · {{ row.reasons|tr }}{% endif %}
+   yếu tố chính: {{ row.drivers or "chưa có" }}
+{%- else %}
+(hôm nay chưa có mã nào đạt điều kiện)
+{%- endfor %}
+
+== Cần cảnh giác ==
+{%- for row in caution %}
+{{ loop.index }}. {{ row.symbol }} · xác suất giảm {{ (row.p_down * 100)|num }}% · tín hiệu {{ row.flag|t }}{% if row.reasons %} · {{ row.reasons|tr }}{% endif %}
+{%- else %}
+(không có mã nào đáng chú ý)
+{%- endfor %}
+{%- if portfolio %}
+
+== Danh mục của bạn ==
+Giá trị {{ portfolio.value_vnd|num }} đ · lãi/lỗ {{ portfolio.pnl_vnd|num }} đ ({{ portfolio.pnl_pct|pct }})
+{%- if portfolio.benchmark_return_pct is not none %}
+{{ portfolio.benchmark }} cùng kỳ: {{ portfolio.benchmark_return_pct|pct }}
+{%- endif %}
+Mức tập trung (HHI): {{ portfolio.hhi|num(2) }} · đóng góp nhiều nhất: {{ portfolio.top_contributor }}
+{%- for line in portfolio.warnings %}
+! {{ line|tr }}
+{%- endfor %}
+{%- endif %}
+
+== Giao dịch mô phỏng ==
+{%- if paper.started %}
+Tài sản {{ paper.equity_vnd|num }} đ ({{ paper.return_pct|pct }} từ {{ paper.started|day }}), {{ paper.benchmark }} cùng kỳ {{ paper.benchmark_return_pct|pct }}
+Đang nắm giữ: {% for h in paper.holdings %}{{ h.symbol }} {{ h.quantity|num }} cp{{ ", " if not loop.last }}{% else %}chỉ có tiền mặt{% endfor %}
+Lệnh cho phiên {{ next_session|day }}: {% for o in paper.orders %}{{ o.side|t }} {{ o.symbol }} {{ o.quantity|num }} cp ({{ o.reason|t }}){{ ", " if not loop.last }}{% else %}không có{% endfor %}
+{%- else %}
+Bắt đầu từ phiên tiếp theo.
+{%- endif %}
+
+Mô hình: {{ models }} · dữ liệu: {{ data_source }}{{ "" if has_volume else ", chưa có khối lượng" }}
+Sản phẩm nghiên cứu cho đồ án, không phải khuyến nghị đầu tư.

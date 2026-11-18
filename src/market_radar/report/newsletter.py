@@ -2,13 +2,51 @@
 
 from __future__ import annotations
 
+import functools
 import math
 from typing import Any
 
 import jinja2
 import pandas as pd
 
-TEMPLATE = "daily.md.j2"
+LANGUAGES = ("vi", "en")
+
+# Terms produced by the signal, forecast and trading code, per language.
+TERMS = {
+    "vi": {
+        "UP": "TĂNG", "DOWN": "GIẢM", "SIDEWAY": "ĐI NGANG",
+        "uptrend": "xu hướng tăng", "downtrend": "xu hướng giảm",
+        "sideways": "đi ngang",
+        "leading": "dẫn dắt", "weakening": "suy yếu",
+        "lagging": "tụt hậu", "improving": "cải thiện",
+        "strong": "mạnh", "neutral": "trung tính", "caution": "cảnh giác",
+        "buy": "mua", "sell": "bán", "entry": "mở vị thế",
+        "add": "mua thêm", "exit": "đóng vị thế", "stop_loss": "cắt lỗ",
+        "banking": "Ngân hàng", "real_estate": "Bất động sản",
+        "securities": "Chứng khoán", "materials": "Vật liệu",
+        "consumer": "Tiêu dùng – bán lẻ", "technology": "Công nghệ",
+        "energy": "Năng lượng – dầu khí",
+        "industrials": "Công nghiệp – xây dựng", "other": "Khác",
+    },
+    "en": {"stop_loss": "stop-loss", "real_estate": "real estate"},
+}
+
+# Fixed phrases inside reason texts, translated in this order.
+PHRASES = {
+    "vi": (
+        ("uptrend (close > MA20 > MA50)", "xu hướng tăng (giá > MA20 > MA50)"),
+        ("MACD histogram > 0", "MACD histogram dương"),
+        ("overbought", "quá mua"),
+        ("below MA50 with negative MACD", "dưới MA50, MACD âm"),
+        ("below lower Bollinger band", "dưới dải Bollinger dưới"),
+        ("x 20-day average", " lần trung bình 20 phiên"),
+        ("volume ", "khối lượng "),
+        ("weak technical signal", "tín hiệu kỹ thuật yếu"),
+        ("sector is lagging", "ngành đang tụt hậu"),
+        ("sector is weakening", "ngành đang suy yếu"),
+    ),
+    "en": (),
+}
 
 
 def market_summary(market: pd.DataFrame, closes: pd.DataFrame,
@@ -40,8 +78,8 @@ def market_summary(market: pd.DataFrame, closes: pd.DataFrame,
 
 
 def outlook_rows(forecasts: pd.DataFrame, symbols: list[str],
-                 model: str) -> list[dict[str, str]]:
-    """Format the 1- and 5-session outlook of key instruments.
+                 model: str) -> list[dict[str, Any]]:
+    """Collect the 1- and 5-session outlook of key instruments.
 
     Args:
         forecasts: Today's forecasts of every model and horizon.
@@ -49,17 +87,22 @@ def outlook_rows(forecasts: pd.DataFrame, symbols: list[str],
         model: Model whose forecasts are shown.
 
     Returns:
-        One row per symbol with ``h1`` and ``h5`` texts.
+        One row per symbol; ``h1`` and ``h5`` hold ``label``, ``p_up``,
+        ``p_sideway`` and ``p_down``, or None without a forecast.
     """
     chosen = forecasts[forecasts["model"] == model]
     rows = []
     for symbol in symbols:
-        row = {"symbol": symbol}
+        row: dict[str, Any] = {"symbol": symbol}
         for horizon in (1, 5):
             match = chosen[(chosen["symbol"] == symbol)
                            & (chosen["horizon"] == horizon)]
-            row[f"h{horizon}"] = (_proba_text(match.iloc[0])
-                                  if not match.empty else "n/a")
+            row[f"h{horizon}"] = None if match.empty else {
+                "label": match.iloc[0]["label_pred"],
+                "p_up": float(match.iloc[0]["p_up"]),
+                "p_sideway": float(match.iloc[0]["p_sideway"]),
+                "p_down": float(match.iloc[0]["p_down"]),
+            }
         rows.append(row)
     return rows
 
@@ -124,39 +167,122 @@ def sector_rows(rotation: pd.DataFrame, asof: pd.Timestamp
     return records[:3], records[3:][-2:]
 
 
-def render(context: dict[str, Any], include_portfolio: bool = True) -> str:
+def render(
+    context: dict[str, Any],
+    include_portfolio: bool = True,
+    language: str = "vi",
+) -> str:
     """Render the newsletter text.
 
     Args:
         context: Values for the template (see ``pipeline.daily``).
         include_portfolio: Whether to show the personal portfolio
             section; the copy saved to git leaves it out.
+        language: ``vi`` or ``en``.
 
     Returns:
         The newsletter as plain text.
+
+    Raises:
+        ValueError: For an unsupported language.
     """
+    if language not in LANGUAGES:
+        raise ValueError(f"Unsupported newsletter language: {language!r}")
     environment = jinja2.Environment(
         loader=jinja2.PackageLoader("market_radar.report", "templates"),
         undefined=jinja2.StrictUndefined,
         keep_trailing_newline=True,
     )
+    environment.filters.update({
+        "num": functools.partial(format_number, language=language),
+        "pct": functools.partial(format_percent, language=language),
+        "day": functools.partial(format_day, language=language),
+        "t": functools.partial(translate_term, language=language),
+        "tr": functools.partial(translate_text, language=language),
+    })
     values = dict(context)
     if not include_portfolio:
         values["portfolio"] = None
-    return environment.get_template(TEMPLATE).render(**values)
+    template = environment.get_template(f"daily.{language}.md.j2")
+    return template.render(**values)
 
 
-def _proba_text(row: pd.Series) -> str:
-    """Format a forecast as ``UP 52/9/39``.
+def format_number(value: float, decimals: int = 0,
+                  language: str = "en") -> str:
+    """Format a number with thousands separators.
 
     Args:
-        row: Forecast with ``label_pred`` and the probabilities.
+        value: Number to format.
+        decimals: Digits after the decimal mark.
+        language: ``vi`` uses ``.`` for thousands and ``,`` for decimals.
 
     Returns:
-        The label followed by P(up)/P(sideways)/P(down) in percent.
+        The formatted number.
     """
-    return (f"{row['label_pred']} {100 * row['p_up']:.0f}/"
-            f"{100 * row['p_sideway']:.0f}/{100 * row['p_down']:.0f}")
+    text = f"{value:,.{decimals}f}"
+    if language == "vi":
+        text = text.replace(",", "_").replace(".", ",").replace("_", ".")
+    return text
+
+
+def format_percent(value: float, decimals: int = 2,
+                   language: str = "en") -> str:
+    """Format a signed percentage, e.g. ``+1.25%``.
+
+    Args:
+        value: Percentage points.
+        decimals: Digits after the decimal mark.
+        language: Number style (see :func:`format_number`).
+
+    Returns:
+        The formatted percentage.
+    """
+    sign = "+" if value >= 0 else "-"
+    return sign + format_number(abs(value), decimals, language) + "%"
+
+
+def format_day(iso_day: str, language: str = "en") -> str:
+    """Format an ISO date for the reader.
+
+    Args:
+        iso_day: ``YYYY-MM-DD``.
+        language: ``vi`` gives ``DD/MM/YYYY``.
+
+    Returns:
+        The formatted date.
+    """
+    if language != "vi":
+        return iso_day
+    year, month, day = iso_day.split("-")
+    return f"{day}/{month}/{year}"
+
+
+def translate_term(term: str, language: str = "en") -> str:
+    """Translate a term such as a regime, quadrant, flag or sector.
+
+    Args:
+        term: Term as produced by the code.
+        language: Target language.
+
+    Returns:
+        The translation, or the term itself when none is defined.
+    """
+    return TERMS[language].get(term, term)
+
+
+def translate_text(text: str, language: str = "en") -> str:
+    """Translate the fixed phrases inside a reason or warning text.
+
+    Args:
+        text: Text built by the signal code.
+        language: Target language.
+
+    Returns:
+        The text with known phrases replaced.
+    """
+    for english, translated in PHRASES[language]:
+        text = text.replace(english, translated)
+    return text
 
 
 def _none_if_nan(value: Any) -> float | None:
