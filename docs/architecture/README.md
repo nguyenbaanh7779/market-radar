@@ -81,9 +81,10 @@ nothing.
 | Workflow | Trigger | Does |
 |---|---|---|
 | `.github/workflows/ci.yml` | Push, pull request | `ruff check`, `pytest` on Python 3.12 |
-| `.github/workflows/daily.yml` | 05:30 ICT Monday–Friday, manual | `market-radar daily`, commit `state/` to the `data` branch |
+| `scripts/macos/run_daily.sh` (launchd, `local.market-radar.daily`) | 05:30 ICT Monday–Friday on the author's Mac | `market-radar daily`, commit `state/` to the `data` branch, Telegram alert on failure |
+| `.github/workflows/daily.yml` | Disabled: Arena refuses GitHub's runners (403) | Same as above, for when cloud access is allowed |
 
-Secrets: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `PORTFOLIO_YAML`.
+Secrets: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (in `.env` on the Mac, repository secrets on GitHub), optional `PORTFOLIO_YAML`.
 
 ## 5. Extension points
 

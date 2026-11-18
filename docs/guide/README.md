@@ -78,7 +78,41 @@ newsletter then shows your portfolio, but the copy saved under
 `state/reports/` never does. Another path can be given with
 `MARKET_RADAR_PORTFOLIO=/path/to/file.yaml`.
 
-## 3. Daily runs on GitHub Actions
+## 3. Daily runs on your Mac
+
+Arena refuses requests from cloud servers such as GitHub's runners (HTTP
+403), so the daily run happens on a Mac in Vietnam, scheduled by launchd.
+It uses a separate clone, `~/market-radar-runner`, always on `main`, so
+work in progress in the development checkout never changes the forward
+test (and launchd needs no access to `~/Documents`).
+
+```bash
+scripts/macos/install.sh       # clone/update the runner, .venv, copy .env, schedule
+launchctl kickstart gui/$(id -u)/local.market-radar.daily   # run once now
+scripts/macos/uninstall.sh     # remove the schedule (keeps the runner)
+```
+
+- **Schedule:** 05:30, Monday to Friday, local time. A run missed while the
+  Mac sleeps starts as soon as it wakes; nothing runs while it is shut down.
+  To wake it a few minutes before (works best on power):
+  `sudo pmset repeat wakeorpoweron MTWRF 05:25:00`.
+- **Each run** (`scripts/macos/run_daily.sh`): fast-forwards `main`,
+  reinstalls dependencies when `requirements.txt` or `pyproject.toml`
+  changed, runs `market-radar daily --send` (retrying every 15 minutes, up
+  to 6 times, while the bars are not published), then commits `state/` and
+  pushes it to the `data` branch over SSH (a key without a passphrase, or
+  one the launchd session can use).
+- **On failure** it sends a short Telegram message with the last log lines.
+  Exit code 4 means the data source refused the machine.
+- **Logs:** `~/Library/Logs/market-radar/daily-<date>.log`.
+- Re-run `install.sh` after changing `.env` or `config/portfolio.yaml`; the
+  runner keeps its own copies.
+
+## 3b. Daily runs on GitHub Actions (disabled)
+
+The `daily` workflow is kept but **disabled** in the Actions tab, because
+Arena answers 403 to GitHub's runners. Enable it again if Arena allows
+cloud access (TODO.md); its setup is below.
 
 `.github/workflows/daily.yml` runs at 05:30 ICT on weekdays (and on
 demand) and commits the forward-test state to the `data` branch, which it

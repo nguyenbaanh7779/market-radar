@@ -55,7 +55,8 @@ src/market_radar/
   cli.py         `market-radar` command
 tests/           pytest on synthetic data (no network)
 docs/            strategy/ (research design), architecture/ (system, data dictionary), guide/ (setup)
-.github/         ci.yml (lint + tests), daily.yml (05:30 ICT run)
+scripts/macos/   daily run on a Mac via launchd (install, run, uninstall)
+.github/         ci.yml (lint + tests), daily.yml (cloud run, disabled: Arena refuses GitHub)
 ```
 
 `data/` and `state/` are generated and gitignored; the forward-test

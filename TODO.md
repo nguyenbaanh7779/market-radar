@@ -19,10 +19,16 @@ the week is the target, not a deadline.
 
 ## Now (W4, 23–29/11)
 
-- [ ] **Start the forward test** (you) — push and merge, set Actions
-  permissions and secrets, run `daily` once by hand (docs/guide Section 3)
+- [ ] **Start the forward test on the Mac** — merge `feat/mac-runner`, run
+  `scripts/macos/install.sh`, then one run with `launchctl kickstart`
+  (docs/guide Section 3)
   - Done when: the `data` branch has its first commit and the newsletter
     arrives on Telegram
+- [ ] **Ask Arena about cloud access** (you) — register an agent on ckai.vn
+  and ask whether `/eod/market-bars` can be used from GitHub Actions (API
+  key or allow-list); GitHub's runners currently get HTTP 403
+  - Done when: the `daily` workflow is enabled again, or the Mac stays the
+    runner with Arena's answer recorded in docs/strategy
 
 ## P1 — Research questions
 
