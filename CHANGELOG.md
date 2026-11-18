@@ -6,6 +6,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Run the daily job on a Mac with launchd, since Arena refuses GitHub's runners ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`cef688c`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/cef688c3392319eca7ad5ecd5bbc0de9d4ac2bda))
+
+### Fixed
+
+- Stop retrying when the data source refuses access (HTTP 401/403) and exit with code 4 ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`94afc4a`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/94afc4a906e4dae10a662bded97c0608ef0f7d6c))
+
 ## [0.1.0] - 2026-11-18
 
 Walking skeleton: the three modules run end to end on real data, with CI and the daily job ([#1](https://github.com/nguyenbaanh7779/market-radar/pull/1))
