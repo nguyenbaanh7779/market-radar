@@ -1,0 +1,48 @@
+{
+  "broker": {
+    "cash_vnd": 100000000.0,
+    "lots": {}
+  },
+  "meta": {
+    "last_rebalance": "2026-11-17",
+    "last_session": "2026-11-17",
+    "pending": [
+      {
+        "quantity": 1900,
+        "reason": "entry",
+        "session": "2026-11-18",
+        "side": "buy",
+        "symbol": "PNJ"
+      },
+      {
+        "quantity": 900,
+        "reason": "entry",
+        "session": "2026-11-18",
+        "side": "buy",
+        "symbol": "PVT"
+      },
+      {
+        "quantity": 300,
+        "reason": "entry",
+        "session": "2026-11-18",
+        "side": "buy",
+        "symbol": "GMD"
+      },
+      {
+        "quantity": 200,
+        "reason": "entry",
+        "session": "2026-11-18",
+        "side": "buy",
+        "symbol": "CTD"
+      },
+      {
+        "quantity": 600,
+        "reason": "entry",
+        "session": "2026-11-18",
+        "side": "buy",
+        "symbol": "GVR"
+      }
+    ],
+    "started": "2026-11-17"
+  }
+}
