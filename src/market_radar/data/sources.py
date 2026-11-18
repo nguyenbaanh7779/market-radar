@@ -21,6 +21,14 @@ class SourceError(RuntimeError):
     """Raised when a source cannot deliver bars for a symbol."""
 
 
+class SourceAccessDenied(SourceError):
+    """Raised when a source refuses this client (HTTP 401 or 403).
+
+    Retrying or moving on to other symbols cannot help, e.g. when Arena
+    blocks data-centre IP addresses such as GitHub's runners.
+    """
+
+
 class BarSource(Protocol):
     """Anything that returns daily bars for one symbol."""
 
@@ -138,6 +146,9 @@ class ArenaSource:
     def _get_json(self, path: str, params: dict[str, str]) -> dict[str, Any]:
         """GET a JSON document, retrying transient failures.
 
+        Network errors, 5xx and 429 responses are retried; other 4xx
+        responses are final, since repeating the request cannot help.
+
         Args:
             path: Endpoint path below the base URL.
             params: Query parameters.
@@ -146,7 +157,8 @@ class ArenaSource:
             The decoded JSON body.
 
         Raises:
-            SourceError: After the last failed attempt.
+            SourceAccessDenied: On HTTP 401 or 403.
+            SourceError: On another 4xx, or after the last failed attempt.
         """
         url = self._settings.base_url.rstrip("/") + path
         last_error: Exception | None = None
@@ -155,6 +167,7 @@ class ArenaSource:
                 response = self._session.get(
                     url, params=params, timeout=self._settings.timeout_s
                 )
+                _raise_if_final(response, url)
                 response.raise_for_status()
                 return response.json()
             except (requests.RequestException, ValueError) as error:
@@ -230,6 +243,27 @@ class VnstockSource:
             self._sleep(self._pause)
         frame = pd.DataFrame(raw).rename(columns={"time": "date"})
         return normalize_bars(frame, self.name)
+
+
+def _raise_if_final(response: requests.Response, url: str) -> None:
+    """Raise at once for client errors that retrying cannot fix.
+
+    Args:
+        response: HTTP response.
+        url: Requested URL, for the message.
+
+    Raises:
+        SourceAccessDenied: On HTTP 401 or 403.
+        SourceError: On any other 4xx except 429 (rate limit).
+    """
+    status = response.status_code
+    if status in (401, 403):
+        raise SourceAccessDenied(
+            f"{url} refused this client (HTTP {status}); the source may "
+            f"block this network, e.g. cloud servers"
+        )
+    if 400 <= status < 500 and status != 429:
+        raise SourceError(f"{url} answered HTTP {status}")
 
 
 def _import_vnstock_market() -> Callable[[str], Any]:

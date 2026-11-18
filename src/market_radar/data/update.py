@@ -8,7 +8,11 @@ from collections.abc import Iterable
 
 import pandas as pd
 
-from market_radar.data.sources import BarSource, SourceError
+from market_radar.data.sources import (
+    BarSource,
+    SourceAccessDenied,
+    SourceError,
+)
 from market_radar.data.store import BarStore
 
 logger = logging.getLogger(__name__)
@@ -38,6 +42,10 @@ def update_bars(
     Returns:
         One row per symbol: status (``ok``, ``empty`` or ``error``), rows
         added, total rows, first and last date, and the error message.
+
+    Raises:
+        SourceAccessDenied: As soon as the source refuses this client; the
+            remaining symbols would be refused too.
     """
     fetched_at = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
     rows = []
@@ -85,6 +93,8 @@ def _update_one(
                               "new_rows": 0, "message": ""}
     try:
         bars = source.fetch(symbol, begin, end)
+    except SourceAccessDenied:
+        raise
     except SourceError as error:
         logger.warning("%s: %s", symbol, error)
         row.update(status="error", message=str(error))

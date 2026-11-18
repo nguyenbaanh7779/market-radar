@@ -143,3 +143,14 @@ def test_split_message_respects_limit():
     chunks = split_message(text, limit=1000)
     assert all(len(chunk) <= 1000 for chunk in chunks)
     assert "".join(chunks) == text
+
+
+def test_cli_exit_code_when_access_is_denied(monkeypatch, tmp_path):
+    from market_radar import cli
+    from market_radar.data.sources import SourceAccessDenied
+
+    def denied(*args, **kwargs):
+        raise SourceAccessDenied("HTTP 403")
+
+    monkeypatch.setattr(pipeline, "update_data", denied)
+    assert cli.main(["daily", "--state-dir", str(tmp_path)]) == 4

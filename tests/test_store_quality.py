@@ -111,3 +111,27 @@ def test_compare_closes():
     assert out["common_dates"] == 2
     assert out["max_abs_bps"] == 100.0
     assert out["share_over_50bps"] == 0.5
+
+
+class DeniedSource:
+    name = "denied"
+
+    def __init__(self):
+        self.requests = []
+
+    def fetch(self, symbol, start, end):
+        from market_radar.data.sources import SourceAccessDenied
+        self.requests.append(symbol)
+        raise SourceAccessDenied("HTTP 403")
+
+
+def test_update_stops_at_the_first_access_denied(tmp_path):
+    import pytest
+
+    from market_radar.data.sources import SourceAccessDenied
+    source = DeniedSource()
+    with pytest.raises(SourceAccessDenied):
+        update_bars(BarStore(tmp_path), source, ["VNINDEX", "VN30", "AAA"],
+                    start=dt.date(2019, 1, 1), end=dt.date(2026, 11, 16),
+                    overlap_days=10)
+    assert source.requests == ["VNINDEX"]
