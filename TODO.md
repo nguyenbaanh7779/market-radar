@@ -76,7 +76,25 @@ the week is the target, not a deadline.
     group at a time, walk-forward log loss and DM test)
   - Done when: a table ranks the signal groups by contribution
 
+- [ ] **`docs/backtest-engines`** (W6, supervisor's request 2026-11-17) —
+  survey existing backtest engines before extending Module 3 (RQ4)
+  - Candidates: backtrader, vectorbt, backtesting.py, zipline-reloaded,
+    bt, NautilusTrader, QuantConnect LEAN; check maintenance status and
+    licence
+  - Compare on what this project needs: event-driven vs vectorised, daily
+    bars, board lots, T+2 settlement, ±7/10/15% price limits, fee and
+    selling-tax models, fills at the next close, multi-asset portfolios,
+    metrics and reports, speed on ~75 stocks × 2,000 sessions
+  - Cross-check: replay the current strategy in one or two engines and
+    compare equity curves with `trader/backtest.py` (should match within
+    rounding when the rules are aligned)
+  - Decide: keep the custom engine, adopt one, or keep both (one as a
+    reference check); record it in docs/strategy Section 9
+  - Done when: a comparison table and the decision are in docs/strategy,
+    with the cross-check result
+
 - [ ] **`feat/paper-trading-v1`** (W7) — notebook `05_backtest` (RQ4)
+  - Build on the engine chosen in `docs/backtest-engines`
   - Sensitivity to fees, top-k, stop-loss, weights and the 1D vs 5D
     signal; benchmark also against the E1VFVN30 ETF
   - Done when: strategy vs VN30 table with costs, plus the sensitivity
