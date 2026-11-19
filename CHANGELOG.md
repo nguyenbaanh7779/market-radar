@@ -10,6 +10,8 @@ All notable changes to this project are documented in this file. The format is b
 
 - Run the daily job on a Mac with launchd, since Arena refuses GitHub's runners ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`cef688c`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/cef688c3392319eca7ad5ecd5bbc0de9d4ac2bda))
 
+- Add progress reports for the supervisor in `docs/report/` (Vietnamese briefs, one per date), starting with 19/11/2026 ([#5](https://github.com/nguyenbaanh7779/market-radar/pull/5), [`a6998ba`](https://github.com/nguyenbaanh7779/market-radar/pull/5/commits/a6998ba471dc61542f87492cd9e369531a30290a))
+
 ### Changed
 
 - Write the newsletter in plain language: a summary, words first with the real numbers in brackets, confidence words and reasons per stock ([#4](https://github.com/nguyenbaanh7779/market-radar/pull/4), [`2c71314`](https://github.com/nguyenbaanh7779/market-radar/pull/4/commits/2c71314173110406d7b86c03da184f98e489e1e7))
