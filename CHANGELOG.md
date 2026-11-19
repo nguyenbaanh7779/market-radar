@@ -9,7 +9,6 @@ All notable changes to this project are documented in this file. The format is b
 ### Added
 
 - Run the daily job on a Mac with launchd, since Arena refuses GitHub's runners ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`cef688c`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/cef688c3392319eca7ad5ecd5bbc0de9d4ac2bda))
-
 - Add progress reports for the supervisor in `docs/report/` (Vietnamese briefs, one per date), starting with 19/11/2026 ([#5](https://github.com/nguyenbaanh7779/market-radar/pull/5), [`a6998ba`](https://github.com/nguyenbaanh7779/market-radar/pull/5/commits/a6998ba471dc61542f87492cd9e369531a30290a))
 
 ### Changed
