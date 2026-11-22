@@ -22,7 +22,7 @@ def test_universe_lists_are_consistent():
     assert len(set(universe.vn30)) == 30
     assert set(universe.banks) <= set(universe.stocks)
     assert universe.sector_of("VCB") == "banking"
-    assert universe.sector_of("BVH") is None
+    assert universe.sector_of("VPL") is None
     assert universe.exchange_of("SHS") == "HNX"
     assert universe.price_limit_pct("VCB") == 7.0
     assert universe.exchange_of("ACB", dt.date(2020, 12, 1)) == "HNX"

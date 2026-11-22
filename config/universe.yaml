@@ -1,6 +1,6 @@
 # Instrument universe. Every stock below is covered by the Arena (ckai.vn)
 # EOD market-bars API, which is also what Arena scores predictions against.
-as_of: "2026-11-17"
+as_of: "2026-11-22"
 
 indices: [VNINDEX, VN30]
 
@@ -14,13 +14,14 @@ baskets:
   BANKS: banking
 
 vn30:
-  # Reconstructed from HOSE review announcements: May 2026 (+BSR, -DGC)
-  # and July 2026, effective 2026-08-03 (+MCH, +TCX, -TPB, -PLX).
-  # Not checked against the official list yet -- see TODO.md.
-  verified: false
-  members: [ACB, BID, BSR, BVH, CTG, FPT, GAS, GVR, HDB, HPG, LPB, MBB,
-            MCH, MSN, MWG, SAB, SHB, SSB, SSI, STB, TCB, TCX, VCB, VHM,
-            VIB, VIC, VJC, VNM, VPB, VRE]
+  # Members since 2026-08-03, rebuilt from HOSE's review results (links in
+  # docs/architecture/data_dictionary.md): 2025-08 -BVH +DGC; 2026-02 -BCM
+  # +VPL; 2026-05-13 -DGC +BSR; 2026-08-03 -PLX -TPB +MCH +TCX; the
+  # 2026-11 review changed weights only. Arena has no bars for MCH and VPL.
+  verified: true
+  members: [ACB, BID, BSR, CTG, FPT, GAS, GVR, HDB, HPG, LPB, MBB, MCH,
+            MSN, MWG, SAB, SHB, SSB, SSI, STB, TCB, TCX, VCB, VHM, VIB,
+            VIC, VJC, VNM, VPB, VPL, VRE]
 
 # Eight sectors with representative stocks (one sector per stock).
 sectors:
