@@ -75,6 +75,7 @@ nothing.
 | `data/raw/bars/` | Downloaded bars | No — re-creatable; cached in CI |
 | `data/results/` | Walk-forward and backtest results | No — re-creatable |
 | `state/` | Forward-test logs, account, reports | No on `main`; yes on the orphan `data` branch |
+| `notebooks/`, `docs/figures/` | Analyses with their outputs, and the figures they save | Yes |
 
 ## 4. Automation
 
