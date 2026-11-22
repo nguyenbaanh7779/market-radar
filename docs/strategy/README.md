@@ -107,30 +107,94 @@ keyless Arena API is therefore the default.
 
 ### 5.2 Universe
 
-78 symbols are requested: VNINDEX, VN30 and 76 stocks — the 30 VN30
-constituents, 20 listed banks and 8 sectors (banking with all 20 banks;
-real estate, securities, materials, consumer, technology, energy and
-industrials with 5–11 representatives each). An equal-weight basket of the banks, **BANKS**, is built as an
-instrument; it stands in for Arena's `BANKING` instrument, whose
-definition is not published. All stocks are in Arena's universe except
-MCH (added to VN30 in August 2026), for which Arena has no bars.
+78 symbols are requested: VNINDEX, VN30 and 76 stocks. The stocks are the
+30 VN30 constituents, the 20 listed banks and 8 sectors:
+- banking, with all 20 banks;
+- real estate, securities, materials, consumer, technology, energy and
+  industrials, with 5–11 representatives each.
 
-The VN30 list is reconstructed from the May and July 2026 HOSE reviews
-and must be checked against the official list. Using today's
-constituents over the whole history introduces **survivorship bias**: a
-limitation to state in the report.
+An equal-weight basket of the banks, **BANKS**, is built as an instrument.
+It stands in for Arena's `BANKING` instrument, whose definition is not
+published. Arena has bars for every symbol except MCH and VPL, so 77
+instruments are forecast.
+
+The VN30 list is the one in force since 2026-08-03. It was verified
+on 2026-11-22 by chaining HOSE's review results:
+
+| Effective | Out | In |
+|---|---|---|
+| 2025-08 | BVH | DGC |
+| 2026-02-02 | BCM | VPL |
+| 2026-05-13 | DGC | BSR |
+| 2026-08-03 | PLX, TPB | MCH, TCX |
+| 2026-11-16 | weights only | — |
+
+Applying today's constituents to the whole history introduces
+**survivorship bias**: stocks that left the large-cap group (BCM, DGC,
+PLX, TPB…) are missing from the earlier years, so backtest results are
+mildly optimistic. This is a threat to validity to state in the report.
 
 ### 5.3 Quality rules
 
-`market-radar check` reports, per symbol: sessions missing against the
-VNINDEX calendar, duplicate dates, inconsistent OHLC, moves beyond the
-exchange price limit (HOSE ±7%, HNX ±10%, UPCoM ±15%) and volume
-coverage. A move beyond the limit usually marks a corporate action that
-the series is not adjusted for (e.g. HPG −21% on 2021-05-31), so **labels
-whose window spans such a move are voided**. Because exchange transfers
-are not modelled yet (e.g. BSR and SHB, both listed on other exchanges
-before HOSE), some legitimate older moves are voided too — conservative,
-and refined in the data-understanding step.
+`market-radar check` reports, per symbol:
+- sessions missing against the VNINDEX calendar;
+- duplicate dates;
+- inconsistent OHLC;
+- moves beyond the price limit of the day;
+- bars copied from the previous session;
+- volume coverage.
+
+Findings from `notebooks/01_data_understanding.ipynb` (data to 2026-11-17):
+
+- **Price limits follow the exchange of the day.** HOSE allows ±7%, HNX
+  ±10% and UPCoM ±15%. Thirteen stocks moved to HOSE during the sample,
+  for example ACB from HNX in December 2020 and BSR from UPCoM in January
+  2025. `exchange_history` in `config/universe.yaml` records the last
+  session on the earlier exchange, checked against the press. The first
+  session on the new exchange allows ±20%. Checking each stock against its
+  *current* exchange flagged 340 moves; the exchange of the day leaves 38.
+- **Arena's prices are back-adjusted, but not completely.** For the median
+  stock, 60% of closes before 2026 are off the HOSE price grid, while STB,
+  which paid no dividend, sits on it throughout. Some ex-dates are still
+  unadjusted:
+  - the May–June 2021 wave of stock dividends and rights issues (ACB, HPG,
+    NVL, VIB, VND, VCI…);
+  - TCX and FPT in September 2026.
+
+  A move beyond the limit therefore still marks a corporate action, and
+  **labels whose window spans such a move are voided**. Events small enough
+  to stay within the limit cannot be detected this way.
+- **Copied bars.** Arena repeats the previous bar on sessions without
+  trading, such as the days between two listings or illiquid UPCoM days.
+  Such bars are 0.5% of all bars, and 82 since 2023. **Labels whose window
+  contains a copied bar, or the first real bar after copies, are voided.**
+  An unchanged close would otherwise be scored as a SIDEWAY session that
+  never happened.
+- **Genuine extreme moves stay.** PNJ fell from 63.0 to 31.0 in July 2026
+  through nine limit-down sessions; the press confirms a real sell-off.
+- Inconsistent OHLC rows are rare: 75 in total, mostly HHV in 2019–2020,
+  and 8 on HNX stocks in May 2025. Labels use closes only, so they are
+  kept.
+- **Coming change:** all HNX stocks (SHS, MBS, PVS and IDC here) move to
+  HOSE on 2026-12-28. The config is to be updated once their price limit
+  is published.
+
+### 5.4 Sample period
+
+Bars are downloaded from 2019 and the modelling sample starts at
+**2023-01-01**. Training from 2020 instead was tested on identical
+walk-forward test blocks ending before the planned holdout (2026-06-01).
+It lowered the logistic log loss at both horizons:
+
+| h | Train from 2023 | Train from 2020 | DM, p |
+|---|---|---|---|
+| 1 | 0.998 | 0.995 | −1.71, 0.09 |
+| 5 | 0.872 | 0.859 | −1.59, 0.11 |
+
+The gain is not significant at 5%, so the start stays at 2023 and the 2020
+variant is the first one to test in `feat/forecaster-v1`. From 2020 the
+sample would add the COVID crash, the 2021 boom and the 2022 bust (VNINDEX
+−40%), which a 2023 start never sees.
 
 ## 6. Labels
 
@@ -144,12 +208,18 @@ with h ∈ {1, 5} sessions and θ = 0.2%. With h = 1 this is exactly Arena's
 close_{D−1}`, default band 0.2%). Arena's direction leaderboards are
 `VN30` 1D, `BANKING` 1D and `VNINDEX` 5D, all with a 0.2% band.
 
-SIDEWAY is the minority class at this band: 14.3% of 1-session and 4.9%
-of 5-session labels in the 2024–2026 test period (DOWN 43.8% / 47.5%, UP
-41.9% / 47.6%), so the 5-session problem is nearly binary. Many SIDEWAY
-cases are unchanged closes of low-priced stocks, where one price tick
-exceeds the band; the effect of θ is examined in the data-understanding
-step.
+SIDEWAY is the minority class at this band. From 2023 it is:
+- 14% of stock labels and 20% of index labels at h = 1;
+- 5% and 7% at h = 5, so the 5-session problem is nearly binary.
+
+65% of the stock SIDEWAY labels at h = 1 are an exactly unchanged close.
+At 10–50 thousand VND one price tick is 0.1–0.5%, so the band mostly
+captures "no move".
+
+A band of 0.5% gives a more balanced problem (29% SIDEWAY at h = 1). It
+would, however, stop matching Arena's rule and change the labels the
+forward test logs. **θ stays at 0.2%.** A binary UP/DOWN variant is tested
+in `feat/forecaster-v1`.
 
 ## 7. Module 1 – signal analysis
 
@@ -278,8 +348,9 @@ project, submission must start by mid-December.
 - **Survivorship bias** in the universe (Section 5.2).
 - **No volume** with the default source: liquidity and volume-spike
   signals are off until a keyed source is configured.
-- **Unadjusted jumps** and exchange transfers in the price history
-  (Section 5.3).
+- **Partly adjusted prices:** Arena back-adjusts most dividends but not
+  all. Small unadjusted events stay undetected, and a re-download can
+  rewrite history (Section 5.3).
 - **Data-source risk:** Arena's API is public but undocumented in parts
   and could change; vnstock needs a broker key; GitHub-hosted runners may
   be blocked by some Vietnamese sources.
@@ -287,34 +358,43 @@ project, submission must start by mid-December.
 - **Not investment advice;** sharing the tool beyond the author needs a
   check of the rules on securities investment advice.
 
-## 12. Baseline results of the skeleton (2026-11-17)
+## 12. Baseline results of the skeleton (2026-11-22)
 
-First run of `market-radar evaluate` and `backtest` on Arena data, with
-the default settings of this document. These numbers are the starting
-point that the planned work must beat, not results for the report.
+`market-radar evaluate` and `backtest` on Arena data, with the default
+settings of this document. These numbers are the starting point the
+planned work must beat, not results for the report.
 
-Walk-forward 2024-01 to 2026-11 (34 folds per horizon, 78 instruments):
+They were first run on 2026-11-17, and re-run on 2026-11-22 after the
+data-understanding changes:
+- price limits by period;
+- copied bars voided;
+- BVH replaced by VPL in VN30.
+
+The numbers barely moved. Accuracy at h = 1 was 0.447 against 0.419
+before, with p = 0.002.
+
+Walk-forward 2024-01 to 2026-11 (34 folds per horizon, 77 instruments):
 
 | h | Model | n | Accuracy | Balanced accuracy | Log loss | Brier |
 |---|---|---|---|---|---|---|
-| 1 | majority | 54,590 | 0.419 | 0.333 | 1.005 | 0.613 |
-| 1 | momentum | 54,590 | 0.419 | 0.333 | 1.005 | 0.613 |
-| 1 | logistic | 54,590 | 0.447 | 0.349 | **0.999** | **0.611** |
-| 1 | gbdt | 54,590 | 0.441 | 0.346 | 1.023 | 0.629 |
-| 5 | majority | 53,946 | 0.476 | 0.333 | **0.858** | **0.548** |
-| 5 | momentum | 53,946 | 0.476 | 0.333 | 0.858 | 0.548 |
-| 5 | logistic | 53,946 | 0.476 | 0.334 | 0.868 | 0.558 |
-| 5 | gbdt | 53,946 | 0.496 | 0.348 | 0.911 | 0.589 |
+| 1 | majority | 53,848 | 0.420 | 0.333 | 1.004 | 0.613 |
+| 1 | momentum | 53,848 | 0.418 | 0.332 | 1.004 | 0.613 |
+| 1 | logistic | 53,848 | 0.447 | 0.349 | **0.998** | **0.610** |
+| 1 | gbdt | 53,848 | 0.446 | 0.349 | 1.023 | 0.629 |
+| 5 | majority | 53,022 | 0.476 | 0.333 | **0.857** | **0.548** |
+| 5 | momentum | 53,022 | 0.476 | 0.333 | 0.857 | 0.548 |
+| 5 | logistic | 53,022 | 0.477 | 0.334 | 0.866 | 0.557 |
+| 5 | gbdt | 53,022 | 0.498 | 0.349 | 0.909 | 0.588 |
 
 Diebold–Mariano on daily log loss: logistic beats both baselines at
-h = 1 (−0.0064 against majority, p = 0.002; p = 0.003 against momentum)
-but not at h = 5 (+0.0097, p = 0.10). LightGBM is worse than both
+h = 1 (−0.0062 against majority, p = 0.003; p = 0.003 against momentum)
+but not at h = 5 (+0.0095, p = 0.10). LightGBM is worse than both
 baselines at both horizons (p < 0.001): higher accuracy, overconfident
 probabilities — calibration and regularisation are needed.
 
 Backtest of the trading rules (logistic, h = 5, weekly rebalance),
-2024-01-17 to 2026-11-16: **−36.4%** against **+58.1%** for VN30, with a
-turnover of 51× a year and 24.7 million VND of fees and tax. As engine
+2024-01-17 to 2026-11-17: **−37.0%** against **+57.5%** for VN30, with a
+turnover of 51× a year and 23.8 million VND of fees and tax. As engine
 checks, an oracle that knows the next five sessions returns several
 hundred times the capital, and random forecasts lose 18.7% (costs, and
 an equal-weight universe lagging a VN30 driven by a few large caps). The
@@ -326,11 +406,14 @@ dominate — the motivation for `feat/forecaster-v1` and
 
 1. How is Arena's `BANKING` instrument defined, and is the 5D label
    `close(D+4) / close(D−1) − 1`? Check `/api/leaderboard/evaluation`.
-2. Are Arena's prices fully adjusted for corporate actions?
-3. The official VN30 list (Section 5.2).
-4. Should the training sample start in 2020 to include the 2022 bear
-   market, rather than 2023 as proposed?
-5. Should indices get their own models instead of sharing the panel?
+2. Should indices get their own models instead of sharing the panel?
+
+Answered on 2026-11-22:
+- whether Arena's prices are adjusted: back-adjusted, but not completely
+  (Section 5.3);
+- the official VN30 list: verified (Section 5.2);
+- a 2020 sample start: better but not significant; kept at 2023 and
+  retested in forecaster-v1 (Section 5.4).
 
 ## 14. Timeline
 
