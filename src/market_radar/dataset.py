@@ -9,7 +9,7 @@ import pandas as pd
 
 from market_radar.calendar import TradingCalendar
 from market_radar.config import Settings
-from market_radar.data.quality import suspect_moves
+from market_radar.data.quality import suspect_bars
 from market_radar.forecaster.features import build_features, feature_columns
 from market_radar.forecaster.labels import add_labels
 from market_radar.signals.market import market_state
@@ -33,7 +33,8 @@ class MarketData:
         calendar: Trading calendar (realised sessions from VNINDEX).
         market: Market state by date.
         rotation: Sector rotation in long format.
-        suspect: Moves beyond the price limit.
+        suspect: Bars that void the labels spanning them (moves beyond
+            the price limit, copied bars).
         panel: Features and labels per symbol and date.
         feature_cols: Usable feature columns.
         has_volume: Whether the source provides volume.
@@ -91,7 +92,7 @@ def assemble(raw_bars: pd.DataFrame, settings: Settings) -> MarketData:
     rotation = relative_rotation(
         sector_closes(stocks, universe.sectors), closes[INDEX_SYMBOL],
         settings.signals.rrg_window, settings.signals.rrg_momentum_lag)
-    suspect = suspect_moves(bars, universe)
+    suspect = suspect_bars(bars, universe)
     panel = build_features(bars, market, rotation, universe, has_volume)
     panel = add_labels(panel, settings.labels.horizons,
                        settings.labels.sideway_band_pct, suspect)

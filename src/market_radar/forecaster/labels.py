@@ -42,15 +42,16 @@ def add_labels(
 ) -> pd.DataFrame:
     """Add forward returns and direction labels for each horizon.
 
-    Labels whose window ``(t, t + h]`` contains a suspect move (a jump
-    beyond the price limit, usually an unadjusted corporate action) are
-    set to missing so they are neither trained on nor scored.
+    Labels whose window ``(t, t + h]`` contains a suspect bar (a jump
+    beyond the price limit, usually an unadjusted corporate action, or a
+    bar copied from the previous session) are set to missing so they are
+    neither trained on nor scored.
 
     Args:
         panel: Rows ``symbol``, ``date``, ``close`` sorted by symbol, date.
         horizons: Horizons in sessions, e.g. ``(1, 5)``.
         band_pct: Sideways band in percent.
-        suspect: Rows ``symbol`` and ``date`` of suspect moves, or None.
+        suspect: Rows ``symbol`` and ``date`` of suspect bars, or None.
 
     Returns:
         A copy of ``panel`` with ``fwd_ret_<h>`` (percent) and

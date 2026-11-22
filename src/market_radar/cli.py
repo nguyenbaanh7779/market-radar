@@ -120,7 +120,7 @@ def cmd_update(settings: Settings, args: argparse.Namespace) -> int:
 
 
 def cmd_check(settings: Settings, args: argparse.Namespace) -> int:
-    """Print the data-quality report and suspect moves.
+    """Print the data-quality report and suspect bars.
 
     Args:
         settings: Run settings.
@@ -136,7 +136,8 @@ def cmd_check(settings: Settings, args: argparse.Namespace) -> int:
     print(f"\nSessions: {data.calendar.sessions[0].date()} to "
           f"{data.asof.date()} ({len(data.calendar.sessions)})")
     print(f"Volume available: {data.has_volume}")
-    print(f"Moves beyond the price limit ({len(data.suspect)}):")
+    counts = data.suspect["reason"].value_counts().to_dict()
+    print(f"Bars that void labels ({len(data.suspect)}; {counts}):")
     print(data.suspect.tail(20).to_string(index=False))
     return 0
 

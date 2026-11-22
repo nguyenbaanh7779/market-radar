@@ -149,6 +149,21 @@ class ReportSettings:
 
 
 @dataclasses.dataclass(frozen=True)
+class Listing:
+    """An earlier listing of a stock that later changed exchange.
+
+    Attributes:
+        exchange: Exchange code of the earlier listing.
+        until: Last session traded on that exchange.
+        source: Where the transfer date comes from (URL or note).
+    """
+
+    exchange: str
+    until: dt.date
+    source: str = ""
+
+
+@dataclasses.dataclass(frozen=True)
 class Universe:
     """Instruments covered by the agent.
 
@@ -161,8 +176,12 @@ class Universe:
         vn30_verified: Whether ``vn30`` was checked against HOSE.
         banks: Listed banks.
         sectors: Sector name to member stocks.
-        exchanges: Exchange of each non-HOSE stock.
+        exchanges: Current exchange of each non-HOSE stock.
         price_limits_pct: Daily price limit per exchange, in percent.
+        exchange_history: Earlier listings per stock, oldest first, for
+            stocks that changed exchange during the sample.
+        first_session_limit_pct: Price limit of the first session on a
+            new exchange, in percent.
     """
 
     as_of: dt.date
@@ -174,6 +193,9 @@ class Universe:
     sectors: dict[str, tuple[str, ...]]
     exchanges: dict[str, str]
     price_limits_pct: dict[str, float]
+    exchange_history: dict[str, tuple[Listing, ...]] = dataclasses.field(
+        default_factory=dict)
+    first_session_limit_pct: float = 20.0
 
     @property
     def stocks(self) -> tuple[str, ...]:
@@ -218,27 +240,53 @@ class Universe:
                 return sector
         return None
 
-    def exchange_of(self, symbol: str) -> str:
+    def exchange_of(self, symbol: str, date: dt.date | None = None) -> str:
         """Return the exchange of a symbol (HOSE unless listed otherwise).
 
         Args:
             symbol: Instrument symbol.
+            date: Session to look up; the current exchange when omitted.
 
         Returns:
             Exchange code such as ``HOSE``, ``HNX`` or ``UPCOM``.
         """
+        if date is not None:
+            for listing in self.exchange_history.get(symbol, ()):
+                if date <= listing.until:
+                    return listing.exchange
         return self.exchanges.get(symbol, "HOSE")
 
-    def price_limit_pct(self, symbol: str) -> float:
+    def price_limit_pct(
+        self, symbol: str, date: dt.date | None = None
+    ) -> float:
         """Return the daily price limit that applies to a symbol.
 
         Args:
             symbol: Instrument symbol.
+            date: Session to look up; the current limit when omitted.
 
         Returns:
             Limit in percent of the reference price.
         """
-        return self.price_limits_pct[self.exchange_of(symbol)]
+        return self.price_limits_pct[self.exchange_of(symbol, date)]
+
+    def limit_rules(self) -> dict[str, Any]:
+        """Return the price-limit rules that decide which labels are void.
+
+        Returns:
+            Limits per exchange, the first-session limit, current
+            exchanges and the transfer dates, as plain values.
+        """
+        return {
+            "limits": self.price_limits_pct,
+            "first_session": self.first_session_limit_pct,
+            "exchanges": self.exchanges,
+            "history": {
+                symbol: [(item.exchange, item.until.isoformat())
+                         for item in listings]
+                for symbol, listings in self.exchange_history.items()
+            },
+        }
 
 
 @dataclasses.dataclass(frozen=True)
@@ -302,6 +350,7 @@ class Settings:
             "features": dataclasses.asdict(self.features),
             "sample_start": self.data.sample_start.isoformat(),
             "models": dataclasses.asdict(self.models),
+            "price_limits": self.universe.limit_rules(),
         }
         text = json.dumps(payload, sort_keys=True, default=str)
         return hashlib.sha1(text.encode()).hexdigest()[:8]
@@ -385,6 +434,16 @@ def load_universe(path: Path) -> Universe:
         for symbol in symbols
     }
     vn30 = raw.get("vn30") or {}
+    history = {
+        symbol: tuple(sorted(
+            (Listing(exchange=str(item["exchange"]).upper(),
+                     until=_to_date(item["until"]),
+                     source=str(item.get("source", "")))
+             for item in listings),
+            key=lambda listing: listing.until,
+        ))
+        for symbol, listings in (raw.get("exchange_history") or {}).items()
+    }
     return Universe(
         as_of=_to_date(raw["as_of"]),
         indices=tuple(raw.get("indices") or ()),
@@ -401,6 +460,9 @@ def load_universe(path: Path) -> Universe:
             key.upper(): float(value)
             for key, value in raw["price_limits_pct"].items()
         },
+        exchange_history=history,
+        first_session_limit_pct=float(
+            raw.get("first_session_limit_pct", 20.0)),
     )
 
 

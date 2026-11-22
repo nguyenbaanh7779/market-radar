@@ -1,10 +1,15 @@
+import dataclasses
 import datetime as dt
 
 import pandas as pd
 
+from market_radar.config import Listing
 from market_radar.data.quality import (
     compare_closes,
+    price_limits,
     quality_report,
+    repeated_bars,
+    suspect_bars,
     suspect_moves,
 )
 from market_radar.data.sources import empty_bars, normalize_bars
@@ -86,6 +91,64 @@ def test_suspect_moves_respect_exchange_limits(universe):
     assert moves["symbol"].tolist() == ["AAA", "AAA"]
 
 
+def transferred(universe, until="2026-01-07"):
+    """AAA traded on HNX until ``until``, then on HOSE."""
+    history = {"AAA": (Listing("HNX", dt.date.fromisoformat(until)),)}
+    return dataclasses.replace(universe, exchange_history=history)
+
+
+def test_price_limits_follow_the_exchange_of_the_day(universe):
+    dates = pd.bdate_range("2026-01-05", periods=6)   # Mon 5 .. Mon 12
+    frame = pd.DataFrame({"symbol": "AAA", "date": dates})
+    limits = price_limits(frame, transferred(universe)).tolist()
+    # HNX up to Wed 7, first HOSE session Thu 8 at 20%, then HOSE 7%
+    assert limits == [10.0, 10.0, 10.0, 20.0, 7.0, 7.0]
+    assert universe.exchange_of("AAA", dt.date(2026, 1, 7)) == "HOSE"
+    assert transferred(universe).exchange_of(
+        "AAA", dt.date(2026, 1, 7)) == "HNX"
+    assert transferred(universe).price_limit_pct("AAA") == 7.0
+
+
+def test_hnx_move_before_a_transfer_is_not_suspect(universe):
+    dates = pd.bdate_range("2026-01-05", periods=6)
+    #          HNX:  +9%            first HOSE: +12%   HOSE: +9%
+    closes = [10.0, 10.9, 10.9, 12.208, 12.208, 13.307]
+    frame = pd.DataFrame({"symbol": "AAA", "date": dates, "close": closes})
+    moves = suspect_moves(frame, transferred(universe))
+    assert moves["date"].tolist() == [dates[5]]
+    assert moves["limit_pct"].tolist() == [7.0]
+    # without the history, all three moves breach the HOSE limit
+    assert len(suspect_moves(frame, universe)) == 3
+
+
+def ohlc_frame(rows):
+    dates = pd.bdate_range("2026-01-05", periods=len(rows))
+    return pd.DataFrame([
+        {"symbol": "AAA", "date": day, "open": o, "high": h, "low": low,
+         "close": c} for day, (o, h, low, c) in zip(dates, rows, strict=True)
+    ]), dates
+
+
+def test_repeated_bars_flag_copies_and_the_bar_after():
+    frame, dates = ohlc_frame([
+        (10, 11, 9, 10.5), (10, 11, 9, 10.5), (10, 11, 9, 10.5),
+        (10.6, 11.2, 10.4, 11.0), (11.0, 11.0, 11.0, 11.0),
+    ])
+    out = repeated_bars(frame)
+    assert out["date"].tolist() == [dates[1], dates[2], dates[3]]
+    assert out["repeat"].tolist() == [True, True, False]
+
+
+def test_suspect_bars_combine_reasons_once_per_date(universe):
+    frame, dates = ohlc_frame([
+        (10, 10, 10, 10), (10, 10, 10, 10), (12, 12, 12, 12),
+    ])
+    out = suspect_bars(frame, universe)
+    # day 2 is a copy; day 3 is both the bar after it and a +20% jump
+    assert out["date"].tolist() == [dates[1], dates[2]]
+    assert out["reason"].tolist() == ["repeat", "limit"]
+
+
 def test_quality_report_counts_problems(universe):
     dates = pd.bdate_range("2026-01-05", periods=5)
     frame = pd.DataFrame({
@@ -101,6 +164,7 @@ def test_quality_report_counts_problems(universe):
     assert report["missing_sessions"] == 1
     assert report["bad_ohlc"] == 1
     assert report["volume_coverage"] == 0.75
+    assert report["repeated_bars"] == 0
 
 
 def test_compare_closes():
