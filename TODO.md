@@ -42,6 +42,17 @@ the week is the target, not a deadline.
   - Done when: the `daily` workflow is enabled again, or the Mac stays the
     runner with Arena's answer recorded in docs/strategy
 
+- [ ] **Get an SSI FastConnect Data key** (you) — vnstock 4.x/5.x and the
+  personal `vnstock_…` key stopped working on 2026-11-10 (Decree
+  363/2026); vnstock 6 needs a broker key. Register FastConnect **Data**
+  (not Trading) through your SSI broker or a branch, confirm by email,
+  then create the connection on iBoard → Dịch vụ API and save ConsumerID
+  and ConsumerSecret (shown once). Install vnstock 6 in `.venv` and run
+  `vnstock keys set ssi`, `vnstock keys check ssi`, `vnstock doctor`
+  (docs/guide Section 4)
+  - Done when: `vnstock keys check ssi` passes; then start
+    `feat/vnstock-source`
+
 ## P1 — Research questions
 
 - [ ] **`chore/hnx-transfer`** (W9, after 2026-12-28) — all HNX stocks
@@ -149,8 +160,19 @@ the week is the target, not a deadline.
   - Start by about 2026-12-15 to reach 30 resolved predictions by the end
   - Done when: the agent appears on the Arena leaderboards
 
-- [ ] **`feat/vnstock-source`** — test the vnstock v6 adapter with a broker
-  key; enable volume features and an evening run
+- [ ] **`feat/vnstock-source`** (after the SSI key) — second data source
+  through vnstock 6 with `source="ssi"`
+  - Run the `VnstockSource` adapter on a few stocks and the indices; fix
+    what differs from the live API
+  - Check what SSI gives: history start, adjusted or raw prices
+    (`ClosePriceAdjusted`), rate limits; volume and value are in DailyOhlc
+  - Notebook comparing SSI with Arena: closes, the 2021 stock dividends,
+    TCX and FPT in 2026-09, PNJ in 2026-07
+  - Decide: keep Arena prices and add SSI volume (re-enable liquidity
+    features), or switch; evening run only if SSI has the bars the same day
+  - Set the key up on the runner clone only once SSI is adopted
+  - Done when: the comparison and the decision are recorded in
+    docs/strategy Section 5
 - [ ] **`chore/universe-history`** — point-in-time VN30 membership to
   remove survivorship bias
 
