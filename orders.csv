@@ -4,3 +4,4 @@ planned_at,session,symbol,side,quantity,reason
 2026-11-17,2026-11-18,GMD,buy,300,entry
 2026-11-17,2026-11-18,CTD,buy,200,entry
 2026-11-17,2026-11-18,GVR,buy,600,entry
+2026-11-23,2026-11-24,PNJ,sell,1900,stop_loss
