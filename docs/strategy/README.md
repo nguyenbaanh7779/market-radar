@@ -141,18 +141,21 @@ mildly optimistic. This is a threat to validity to state in the report.
 - duplicate dates;
 - inconsistent OHLC;
 - moves beyond the price limit of the day;
+- highs or lows beyond the ceiling or floor of the day (reported only:
+  labels use closes);
 - bars copied from the previous session;
 - volume coverage.
 
 Findings from `notebooks/01_data_understanding.ipynb` (data to 2026-11-17):
 
 - **Price limits follow the exchange of the day.** HOSE allows ±7%, HNX
-  ±10% and UPCoM ±15%. Thirteen stocks moved to HOSE during the sample,
-  for example ACB from HNX in December 2020 and BSR from UPCoM in January
-  2025. `exchange_history` in `config/universe.yaml` records the last
+  ±10% and UPCoM ±15%. Fourteen stocks changed exchange during the
+  sample: 13 moved to HOSE, for example ACB from HNX in December 2020 and
+  BSR from UPCoM in January 2025, and IDC moved from UPCoM to HNX in
+  December 2019. `exchange_history` in `config/universe.yaml` records the last
   session on the earlier exchange, checked against the press. The first
   session on the new exchange allows ±20%. Checking each stock against its
-  *current* exchange flagged 340 moves; the exchange of the day leaves 38.
+  *current* exchange flagged 340 moves; the exchange of the day leaves 37.
 - **Arena's prices are back-adjusted, but not completely.** For the median
   stock, 60% of closes before 2026 are off the HOSE price grid, while STB,
   which paid no dividend, sits on it throughout. Some ex-dates are still

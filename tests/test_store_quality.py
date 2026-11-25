@@ -8,6 +8,7 @@ from market_radar.data.quality import (
     compare_closes,
     price_limits,
     quality_report,
+    range_breaches,
     repeated_bars,
     suspect_bars,
     suspect_moves,
@@ -149,6 +150,22 @@ def test_suspect_bars_combine_reasons_once_per_date(universe):
     assert out["reason"].tolist() == ["repeat", "limit"]
 
 
+def test_range_breaches_check_high_and_low_against_the_limit(universe):
+    frame, dates = ohlc_frame([
+        (10.0, 10.0, 10.0, 10.0),
+        (10.2, 10.8, 9.9, 10.5),    # high +8% > 7%: breach
+        (10.5, 10.9, 10.2, 10.6),   # within the limit
+        (10.6, 13.0, 8.0, 12.9),    # close +21.7%: a suspect move instead
+        (12.9, 13.2, 11.8, 12.5),   # low -8.5%: breach
+    ])
+    out = range_breaches(frame, universe)
+    assert out["date"].tolist() == [dates[1], dates[4]]
+    assert out["high_pct"].tolist()[0] == 8.0
+    assert out["limit_pct"].tolist() == [7.0, 7.0]
+    index = frame.assign(symbol=universe.indices[0])
+    assert range_breaches(index, universe).empty
+
+
 def test_quality_report_counts_problems(universe):
     dates = pd.bdate_range("2026-01-05", periods=5)
     frame = pd.DataFrame({
@@ -165,6 +182,7 @@ def test_quality_report_counts_problems(universe):
     assert report["bad_ohlc"] == 1
     assert report["volume_coverage"] == 0.75
     assert report["repeated_bars"] == 0
+    assert report["range_breaches"] == 0
 
 
 def test_compare_closes():

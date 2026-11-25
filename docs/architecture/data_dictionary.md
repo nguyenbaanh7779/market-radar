@@ -22,10 +22,12 @@ are in `docs/strategy/README.md` Section 5.3, and the evidence is in
 
 ### 1.1 Exchange transfers (`exchange_history` in `config/universe.yaml`)
 
-The first HOSE session trades with a ±20% limit.
+The first HOSE session trades with a ±20% limit. IDC moved from UPCoM to HNX
+and was found by the high/low check (`range_breaches`).
 
 | Stock | Earlier exchange | Last session there | First HOSE session | Source |
 |---|---|---|---|---|
+| IDC | UPCoM | 2019-11-29 | 2019-12-10 (HNX, not HOSE) | [VnEconomy](https://vneconomy.vn/idc-sap-len-san-hnx-voi-gia-18500-dong-co-phieu.htm), [Vietstock](https://en.vietstock.vn/2019/12/hnx-approves-listing-of-idico-965-374775.htm) |
 | GVR | UPCoM | 2020-03-06 | 2020-03-17 | [VietnamPlus](https://en.vietnamplus.vn/rubber-group-moves-listing-from-upcom-to-hose/170227.vnp), [Nhà đầu tư](https://nhadautu.vn/4-ty-co-phieu-gvr-se-dung-giao-dich-tren-san-upcom-d34453.html) |
 | DGC | HNX | 2020-07-17 | 2020-07-28 | [Thị trường Tài chính Tiền tệ](https://thitruongtaichinhtiente.vn/ngay-28-7-co-phieu-aph-va-dgc-chao-san-hose-28418.html) |
 | BCM | UPCoM | 2020-08-19 | 2020-08-31 | [Tin nhanh chứng khoán](https://www.tinnhanhchungkhoan.vn/ngay-318-becamex-bcm-se-chao-san-hose-voi-gia-tham-chieu-28000-dong-post248477.html) |

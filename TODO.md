@@ -18,7 +18,7 @@ the week is the target, not a deadline.
   and the daily GitHub Actions job, research design and docs
 - [x] **`feat/data-understanding`** (W4) — notebook
   `01_data_understanding`. Changes:
-  - price limits follow the exchange of the day (13 transfers, checked
+  - price limits follow the exchange of the day (14 transfers, checked
     against the press);
   - copied bars void labels;
   - Arena's adjustment is partial;

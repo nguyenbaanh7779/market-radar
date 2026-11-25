@@ -42,12 +42,13 @@ exchanges:
   HNX: [SHS, MBS, PVS, IDC]
   UPCOM: [ABB, BVB, VGI]
 
-# Earlier listings of stocks that moved to HOSE since 2019. `until` is the
+# Earlier listings of stocks that changed exchange since 2019. `until` is the
 # last session on the earlier exchange. The source repeats the last bar on
 # the days between the two listings (see data/quality.py, repeated_bars).
 # Found from the data (moves of 7-15% stop at the transfer) and checked
 # against the press; links are in docs/architecture/data_dictionary.md.
 exchange_history:
+  IDC: [{exchange: UPCOM, until: "2019-11-29"}]   # HNX from 2019-12-10
   GVR: [{exchange: UPCOM, until: "2020-03-06"}]   # HOSE from 2020-03-17
   DGC: [{exchange: HNX, until: "2020-07-17"}]     # HOSE from 2020-07-28
   BCM: [{exchange: UPCOM, until: "2020-08-19"}]   # HOSE from 2020-08-31
