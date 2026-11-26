@@ -12,3 +12,4 @@ planned_at,session,symbol,side,quantity,reason
 2026-11-25,2026-11-26,KDH,buy,1400,entry
 2026-11-25,2026-11-26,DGW,buy,400,entry
 2026-11-25,2026-11-26,NKG,buy,1400,entry
+2026-11-26,2026-11-27,PNJ,sell,1900,stop_loss

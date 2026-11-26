@@ -1,6 +1,6 @@
 {
   "broker": {
-    "cash_vnd": 10956635.0,
+    "cash_vnd": 6388412.5,
     "lots": {
       "CTD": [
         {
@@ -9,18 +9,25 @@
           "session": "2026-11-18"
         }
       ],
-      "GMD": [
+      "DGW": [
         {
-          "price": 51.2,
-          "quantity": 300,
-          "session": "2026-11-18"
+          "price": 36.2,
+          "quantity": 400,
+          "session": "2026-11-26"
         }
       ],
-      "GVR": [
+      "KDH": [
         {
-          "price": 27.2,
-          "quantity": 600,
-          "session": "2026-11-18"
+          "price": 14.0,
+          "quantity": 1400,
+          "session": "2026-11-26"
+        }
+      ],
+      "NKG": [
+        {
+          "price": 11.25,
+          "quantity": 1400,
+          "session": "2026-11-26"
         }
       ],
       "PNJ": [
@@ -28,69 +35,25 @@
           "price": 13.7,
           "quantity": 1900,
           "session": "2026-11-18"
-        }
-      ],
-      "PVT": [
+        },
         {
-          "price": 19.0,
-          "quantity": 900,
-          "session": "2026-11-18"
+          "price": 12.1,
+          "quantity": 100,
+          "session": "2026-11-26"
         }
       ]
     }
   },
   "meta": {
     "last_rebalance": "2026-11-25",
-    "last_session": "2026-11-25",
+    "last_session": "2026-11-26",
     "pending": [
       {
-        "quantity": 300,
-        "reason": "exit",
-        "session": "2026-11-26",
+        "quantity": 1900,
+        "reason": "stop_loss",
+        "session": "2026-11-27",
         "side": "sell",
-        "symbol": "GMD"
-      },
-      {
-        "quantity": 600,
-        "reason": "exit",
-        "session": "2026-11-26",
-        "side": "sell",
-        "symbol": "GVR"
-      },
-      {
-        "quantity": 900,
-        "reason": "exit",
-        "session": "2026-11-26",
-        "side": "sell",
-        "symbol": "PVT"
-      },
-      {
-        "quantity": 100,
-        "reason": "add",
-        "session": "2026-11-26",
-        "side": "buy",
         "symbol": "PNJ"
-      },
-      {
-        "quantity": 1400,
-        "reason": "entry",
-        "session": "2026-11-26",
-        "side": "buy",
-        "symbol": "KDH"
-      },
-      {
-        "quantity": 400,
-        "reason": "entry",
-        "session": "2026-11-26",
-        "side": "buy",
-        "symbol": "DGW"
-      },
-      {
-        "quantity": 1400,
-        "reason": "entry",
-        "session": "2026-11-26",
-        "side": "buy",
-        "symbol": "NKG"
       }
     ],
     "started": "2026-11-17"
