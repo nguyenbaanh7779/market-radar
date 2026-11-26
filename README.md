@@ -54,7 +54,8 @@ src/market_radar/
   pipeline.py    update / evaluate / backtest / daily
   cli.py         `market-radar` command
 tests/           pytest on synthetic data (no network)
-docs/            strategy/ (research design), architecture/ (system, data dictionary), guide/ (setup), report/ (progress reports to the supervisor, in Vietnamese)
+notebooks/       analyses run on the stored data (01_data_understanding)
+docs/            strategy/ (research design), architecture/ (system, data dictionary), guide/ (setup), report/ (progress reports to the supervisor, in Vietnamese), figures/ (from the notebooks)
 scripts/macos/   daily run on a Mac via launchd (install, run, uninstall)
 .github/         ci.yml (lint + tests), daily.yml (cloud run, disabled: Arena refuses GitHub)
 ```

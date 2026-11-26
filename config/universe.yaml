@@ -1,6 +1,6 @@
 # Instrument universe. Every stock below is covered by the Arena (ckai.vn)
 # EOD market-bars API, which is also what Arena scores predictions against.
-as_of: "2026-11-17"
+as_of: "2026-11-22"
 
 indices: [VNINDEX, VN30]
 
@@ -14,13 +14,14 @@ baskets:
   BANKS: banking
 
 vn30:
-  # Reconstructed from HOSE review announcements: May 2026 (+BSR, -DGC)
-  # and July 2026, effective 2026-08-03 (+MCH, +TCX, -TPB, -PLX).
-  # Not checked against the official list yet -- see TODO.md.
-  verified: false
-  members: [ACB, BID, BSR, BVH, CTG, FPT, GAS, GVR, HDB, HPG, LPB, MBB,
-            MCH, MSN, MWG, SAB, SHB, SSB, SSI, STB, TCB, TCX, VCB, VHM,
-            VIB, VIC, VJC, VNM, VPB, VRE]
+  # Members since 2026-08-03, rebuilt from HOSE's review results (links in
+  # docs/architecture/data_dictionary.md): 2025-08 -BVH +DGC; 2026-02 -BCM
+  # +VPL; 2026-05-13 -DGC +BSR; 2026-08-03 -PLX -TPB +MCH +TCX; the
+  # 2026-11 review changed weights only. Arena has no bars for MCH and VPL.
+  verified: true
+  members: [ACB, BID, BSR, CTG, FPT, GAS, GVR, HDB, HPG, LPB, MBB, MCH,
+            MSN, MWG, SAB, SHB, SSB, SSI, STB, TCB, TCX, VCB, VHM, VIB,
+            VIC, VJC, VNM, VPB, VPL, VRE]
 
 # Eight sectors with representative stocks (one sector per stock).
 sectors:
@@ -33,12 +34,39 @@ sectors:
   energy: [GAS, PLX, PVD, PVS, BSR, POW, PVT]
   industrials: [KBC, IDC, SZC, BCM, GVR, VCG, CTD, HHV, PC1, GMD, VJC]
 
-# Listings outside HOSE (HOSE is the default). Used for daily price limits.
+# Current listings outside HOSE (HOSE is the default). Used for daily price
+# limits. All HNX-listed stocks move to HOSE on 2026-12-28 (last HNX session
+# 2026-12-23); update SHS, MBS, PVS and IDC once HOSE publishes the price
+# limit that applies to them (see TODO.md).
 exchanges:
   HNX: [SHS, MBS, PVS, IDC]
   UPCOM: [ABB, BVB, VGI]
+
+# Earlier listings of stocks that changed exchange since 2019. `until` is the
+# last session on the earlier exchange. The source repeats the last bar on
+# the days between the two listings (see data/quality.py, repeated_bars).
+# Found from the data (moves of 7-15% stop at the transfer) and checked
+# against the press; links are in docs/architecture/data_dictionary.md.
+exchange_history:
+  IDC: [{exchange: UPCOM, until: "2019-11-29"}]   # HNX from 2019-12-10
+  GVR: [{exchange: UPCOM, until: "2020-03-06"}]   # HOSE from 2020-03-17
+  DGC: [{exchange: HNX, until: "2020-07-17"}]     # HOSE from 2020-07-28
+  BCM: [{exchange: UPCOM, until: "2020-08-19"}]   # HOSE from 2020-08-31
+  LPB: [{exchange: UPCOM, until: "2020-10-23"}]   # HOSE from 2020-11-09
+  VIB: [{exchange: UPCOM, until: "2020-10-29"}]   # HOSE from 2020-11-10
+  ACB: [{exchange: HNX, until: "2020-12-01"}]     # HOSE from 2020-12-09
+  VCG: [{exchange: HNX, until: "2020-12-21"}]     # HOSE from 2020-12-29
+  VIX: [{exchange: HNX, until: "2020-12-28"}]     # HOSE from 2021-01-08
+  SHB: [{exchange: HNX, until: "2021-10-05"}]     # HOSE from 2021-10-11
+  HHV: [{exchange: UPCOM, until: "2022-01-06"}]   # HOSE from 2022-01-20
+  CTR: [{exchange: UPCOM, until: "2022-02-14"}]   # HOSE from 2022-02-23
+  NAB: [{exchange: UPCOM, until: "2024-02-28"}]   # HOSE from 2024-03-08
+  BSR: [{exchange: UPCOM, until: "2025-01-06"}]   # HOSE from 2025-01-17
 
 price_limits_pct:
   HOSE: 7.0
   HNX: 10.0
   UPCOM: 15.0
+
+# Limit of the first session on a new exchange (HOSE rule for new listings).
+first_session_limit_pct: 20.0

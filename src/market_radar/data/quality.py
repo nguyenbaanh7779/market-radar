@@ -8,6 +8,7 @@ import pandas as pd
 from market_radar.config import Universe
 
 PRICE_EPS = 1e-9
+OHLC = ["open", "high", "low", "close"]
 
 
 def close_returns_pct(bars: pd.DataFrame) -> pd.Series:
@@ -23,29 +24,144 @@ def close_returns_pct(bars: pd.DataFrame) -> pd.Series:
     return (bars["close"] / previous - 1.0) * 100.0
 
 
+def price_limits(bars: pd.DataFrame, universe: Universe) -> pd.Series:
+    """Return the daily price limit in force on each bar.
+
+    Stocks that changed exchange use the limit of the exchange they traded
+    on that day, and the first session on the new exchange gets the wider
+    first-session limit.
+
+    Args:
+        bars: Long bars with ``symbol`` and ``date``.
+        universe: Gives exchanges, transfer dates and limits.
+
+    Returns:
+        Limits in percent, aligned with ``bars``.
+    """
+    limits = bars["symbol"].map(universe.price_limit_pct).astype(float)
+    for symbol, listings in universe.exchange_history.items():
+        rows = bars["symbol"] == symbol
+        if not rows.any():
+            continue
+        dates = bars.loc[rows, "date"]
+        start = pd.Timestamp.min
+        for listing in listings:
+            until = pd.Timestamp(listing.until)
+            period = dates[(dates > start) & (dates <= until)].index
+            limits[period] = universe.price_limits_pct[listing.exchange]
+            later = dates[dates > until]
+            if not later.empty:
+                first = later.idxmin()
+                limits[first] = max(limits[first],
+                                    universe.first_session_limit_pct)
+            start = until
+    return limits
+
+
 def suspect_moves(
     bars: pd.DataFrame, universe: Universe, tolerance_pct: float = 0.5
 ) -> pd.DataFrame:
     """Find daily moves larger than the exchange price limit allows.
 
     Such jumps usually come from a corporate action that the price series
-    is not adjusted for, so labels spanning them are not trustworthy.
+    is not adjusted for, so labels spanning them are not trustworthy. The
+    limit is the one in force on the day (see ``price_limits``).
 
     Args:
         bars: Long bars sorted by symbol and date.
-        universe: Gives each symbol's exchange price limit.
+        universe: Gives exchanges, transfer dates and limits.
         tolerance_pct: Slack added to the limit, in percentage points.
 
     Returns:
         Rows ``symbol``, ``date``, ``ret_pct`` and ``limit_pct``.
     """
     returns = close_returns_pct(bars)
-    limits = bars["symbol"].map(universe.price_limit_pct).astype(float)
+    limits = price_limits(bars, universe)
     mask = returns.abs() > limits + tolerance_pct
     out = bars.loc[mask, ["symbol", "date"]].copy()
     out["ret_pct"] = returns[mask].round(2)
     out["limit_pct"] = limits[mask]
     return out.reset_index(drop=True)
+
+
+def range_breaches(
+    bars: pd.DataFrame, universe: Universe, tolerance_pct: float = 0.5
+) -> pd.DataFrame:
+    """Find highs above the ceiling or lows below the floor of the day.
+
+    Every trade must fall between the floor and the ceiling set from the
+    reference price (the previous close), so the high and low must too.
+    Only sessions whose close stays within the limit are checked: a close
+    beyond it is already a suspect move. Indices have no limit and are
+    skipped. These rows are reported, not voided, because labels use
+    closes only.
+
+    Args:
+        bars: Long bars sorted by symbol and date.
+        universe: Gives exchanges, transfer dates and limits.
+        tolerance_pct: Slack added to the limit, in percentage points.
+
+    Returns:
+        Rows ``symbol``, ``date``, ``high_pct`` and ``low_pct`` (high and
+        low against the previous close, in percent) and ``limit_pct``.
+    """
+    previous = bars.groupby("symbol", sort=False)["close"].shift(1)
+    limits = price_limits(bars, universe) + tolerance_pct
+    close_pct = (bars["close"] / previous - 1.0) * 100.0
+    high_pct = (bars["high"] / previous - 1.0) * 100.0
+    low_pct = (bars["low"] / previous - 1.0) * 100.0
+    stock = ~bars["symbol"].isin(universe.indices)
+    within = close_pct.abs() <= limits
+    mask = stock & within & ((high_pct > limits) | (low_pct < -limits))
+    out = bars.loc[mask, ["symbol", "date"]].copy()
+    out["high_pct"] = high_pct[mask].round(2)
+    out["low_pct"] = low_pct[mask].round(2)
+    out["limit_pct"] = limits[mask] - tolerance_pct
+    return out.reset_index(drop=True)
+
+
+def repeated_bars(bars: pd.DataFrame) -> pd.DataFrame:
+    """Find bars that copy the previous bar's open, high, low and close.
+
+    The source fills sessions without trading (e.g. the days between two
+    listings) with a copy of the last bar. Such a bar carries no price
+    information, and the bar after a run of copies spans several sessions.
+
+    Args:
+        bars: Long bars sorted by symbol and date.
+
+    Returns:
+        Rows ``symbol``, ``date`` and ``repeat`` (True for a copy, False
+        for the first real bar after a run of copies).
+    """
+    previous = bars.groupby("symbol", sort=False)[OHLC].shift(1)
+    copy = (bars[OHLC] == previous).all(axis=1)
+    after = copy.groupby(bars["symbol"], sort=False).shift(1)
+    after = after.fillna(False).astype(bool) & ~copy
+    mask = copy | after
+    out = bars.loc[mask, ["symbol", "date"]].copy()
+    out["repeat"] = copy[mask]
+    return out.reset_index(drop=True)
+
+
+def suspect_bars(bars: pd.DataFrame, universe: Universe) -> pd.DataFrame:
+    """Collect every bar that makes a label spanning it untrustworthy.
+
+    Args:
+        bars: Long bars sorted by symbol and date.
+        universe: Gives exchanges, transfer dates and limits.
+
+    Returns:
+        Rows ``symbol``, ``date`` and ``reason`` (``limit`` for a move
+        beyond the price limit, ``repeat`` for a copied bar or the bar
+        after copies), one row per symbol and date.
+    """
+    moves = suspect_moves(bars, universe)[["symbol", "date"]]
+    copies = repeated_bars(bars)[["symbol", "date"]]
+    out = pd.concat([moves.assign(reason="limit"),
+                     copies.assign(reason="repeat")], ignore_index=True)
+    out = out.drop_duplicates(["symbol", "date"], keep="first")
+    return out.sort_values(["symbol", "date"]).reset_index(drop=True)
 
 
 def quality_report(
@@ -56,14 +172,18 @@ def quality_report(
     Args:
         bars: Long bars sorted by symbol and date.
         sessions: Realised trading sessions (e.g. VNINDEX dates).
-        universe: Gives each symbol's exchange price limit.
+        universe: Gives exchanges, transfer dates and limits.
 
     Returns:
         One row per symbol with row count, first/last date, sessions
         missing between them, duplicate dates, inconsistent OHLC rows,
-        moves beyond the price limit and the share of bars with volume.
+        moves beyond the price limit, highs or lows beyond the ceiling or
+        floor, copied bars and the share of bars with volume.
     """
     breaches = suspect_moves(bars, universe)["symbol"].value_counts()
+    ranges = range_breaches(bars, universe)["symbol"].value_counts()
+    copies = repeated_bars(bars)
+    copies = copies.loc[copies["repeat"], "symbol"].value_counts()
     rows = []
     for symbol, frame in bars.groupby("symbol", sort=True):
         dates = pd.DatetimeIndex(frame["date"])
@@ -77,6 +197,8 @@ def quality_report(
             "duplicate_dates": int(dates.duplicated().sum()),
             "bad_ohlc": int(_bad_ohlc(frame).sum()),
             "limit_breaches": int(breaches.get(symbol, 0)),
+            "range_breaches": int(ranges.get(symbol, 0)),
+            "repeated_bars": int(copies.get(symbol, 0)),
             "volume_coverage": round(float(frame["volume"].notna().mean()),
                                      3),
         })
@@ -93,7 +215,7 @@ def _bad_ohlc(frame: pd.DataFrame) -> pd.Series:
         Boolean mask: non-positive prices, a high below the open or close,
         or a low above the open or close.
     """
-    prices = frame[["open", "high", "low", "close"]]
+    prices = frame[OHLC]
     body_high = frame[["open", "close"]].max(axis=1)
     body_low = frame[["open", "close"]].min(axis=1)
     non_positive = (prices <= 0).any(axis=1)

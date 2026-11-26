@@ -27,6 +27,16 @@ pytest -q && ruff check .
 dependencies. After changing them, regenerate the pins with
 `uv pip freeze --exclude-editable > requirements.txt`.
 
+The notebooks in `notebooks/` need the `notebook` extra:
+
+```bash
+uv pip install -r requirements.txt -r requirements-notebook.txt
+jupyter execute --inplace notebooks/01_data_understanding.ipynb
+```
+
+They are run from the repository root and save their figures to
+`docs/figures/`.
+
 In VS Code, pick `.venv/bin/python` with *Python: Select Interpreter*.
 
 ### LightGBM on macOS without Homebrew (libomp)

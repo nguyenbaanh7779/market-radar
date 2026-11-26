@@ -1,3 +1,4 @@
+import dataclasses
 import datetime as dt
 
 import pytest
@@ -21,9 +22,12 @@ def test_universe_lists_are_consistent():
     assert len(set(universe.vn30)) == 30
     assert set(universe.banks) <= set(universe.stocks)
     assert universe.sector_of("VCB") == "banking"
-    assert universe.sector_of("BVH") is None
+    assert universe.sector_of("VPL") is None
     assert universe.exchange_of("SHS") == "HNX"
     assert universe.price_limit_pct("VCB") == 7.0
+    assert universe.exchange_of("ACB", dt.date(2020, 12, 1)) == "HNX"
+    assert universe.exchange_of("ACB", dt.date(2020, 12, 9)) == "HOSE"
+    assert universe.price_limit_pct("BSR", dt.date(2024, 5, 22)) == 15.0
     assert universe.instruments[:3] == ("VNINDEX", "VN30", "BANKS")
     assert "BANKS" not in universe.fetch_symbols
 
@@ -40,3 +44,10 @@ def test_overrides_and_fingerprint():
     )
     assert changed.labels.sideway_band_pct == 0.5
     assert base.fingerprint() != changed.fingerprint()
+
+
+def test_fingerprint_tracks_price_limit_rules():
+    base = load_settings(REPO_ROOT)
+    universe = dataclasses.replace(base.universe, exchange_history={})
+    assert dataclasses.replace(base, universe=universe).fingerprint() != (
+        base.fingerprint())

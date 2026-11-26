@@ -10,14 +10,20 @@ All notable changes to this project are documented in this file. The format is b
 
 - Run the daily job on a Mac with launchd, since Arena refuses GitHub's runners ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`cef688c`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/cef688c3392319eca7ad5ecd5bbc0de9d4ac2bda))
 - Add progress reports for the supervisor in `docs/report/` (Vietnamese briefs, one per date), starting with 19/11/2026 ([#5](https://github.com/nguyenbaanh7779/market-radar/pull/5), [`a6998ba`](https://github.com/nguyenbaanh7779/market-radar/pull/5/commits/a6998ba471dc61542f87492cd9e369531a30290a))
+- Add the data-understanding notebook `01_data_understanding` with figures in `docs/figures/` ([#6](https://github.com/nguyenbaanh7779/market-radar/pull/6), [`7552050`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/7552050ae4f6db061c604e289b78fd01ed7a5220))
+- Report highs and lows beyond the ceiling or floor of the day in `market-radar check` ([#6](https://github.com/nguyenbaanh7779/market-radar/pull/6), [`531635c`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/531635cde28068c2a954e7ceab4be4105b32919e))
+- Add the 26/11/2026 progress report on data understanding ([#6](https://github.com/nguyenbaanh7779/market-radar/pull/6), [`18dd7c3`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/18dd7c3c5ffccef8d4636020f2a086d806107c11))
 
 ### Changed
 
 - Write the newsletter in plain language: a summary, words first with the real numbers in brackets, confidence words and reasons per stock ([#4](https://github.com/nguyenbaanh7779/market-radar/pull/4), [`2c71314`](https://github.com/nguyenbaanh7779/market-radar/pull/4/commits/2c71314173110406d7b86c03da184f98e489e1e7))
+- Apply price limits by the exchange of the day (`exchange_history`, 14 transfers) and void labels across copied bars ([#6](https://github.com/nguyenbaanh7779/market-radar/pull/6), [`2f5a7d5`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/2f5a7d5927989cebf524a2aced0ac3ad65319a36), [`531635c`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/531635cde28068c2a954e7ceab4be4105b32919e))
+- Record the data decisions (θ stays 0.2%, sample stays 2023), the new baseline and the SSI data plan ([#6](https://github.com/nguyenbaanh7779/market-radar/pull/6), [`26c42d6`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/26c42d6dd4b52e87cccc516efec9a9a6f2bdd12e), [`baa0015`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/baa0015dac21ad3fedc936940a8038d6d36c0e78))
 
 ### Fixed
 
 - Stop retrying when the data source refuses access (HTTP 401/403) and exit with code 4 ([#3](https://github.com/nguyenbaanh7779/market-radar/pull/3), [`94afc4a`](https://github.com/nguyenbaanh7779/market-radar/pull/3/commits/94afc4a906e4dae10a662bded97c0608ef0f7d6c))
+- Correct the VN30 list from HOSE review results: BVH out, VPL in ([#6](https://github.com/nguyenbaanh7779/market-radar/pull/6), [`7e47177`](https://github.com/nguyenbaanh7779/market-radar/pull/6/commits/7e4717704ab1647dee1d016af9578b1b31b8cf7b))
 
 ## [0.1.0] - 2026-11-18
 
