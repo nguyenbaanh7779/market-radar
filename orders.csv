@@ -5,3 +5,10 @@ planned_at,session,symbol,side,quantity,reason
 2026-11-17,2026-11-18,CTD,buy,200,entry
 2026-11-17,2026-11-18,GVR,buy,600,entry
 2026-11-23,2026-11-24,PNJ,sell,1900,stop_loss
+2026-11-25,2026-11-26,GMD,sell,300,exit
+2026-11-25,2026-11-26,GVR,sell,600,exit
+2026-11-25,2026-11-26,PVT,sell,900,exit
+2026-11-25,2026-11-26,PNJ,buy,100,add
+2026-11-25,2026-11-26,KDH,buy,1400,entry
+2026-11-25,2026-11-26,DGW,buy,400,entry
+2026-11-25,2026-11-26,NKG,buy,1400,entry

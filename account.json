@@ -40,15 +40,57 @@
     }
   },
   "meta": {
-    "last_rebalance": "2026-11-17",
-    "last_session": "2026-11-23",
+    "last_rebalance": "2026-11-25",
+    "last_session": "2026-11-25",
     "pending": [
       {
-        "quantity": 1900,
-        "reason": "stop_loss",
-        "session": "2026-11-24",
+        "quantity": 300,
+        "reason": "exit",
+        "session": "2026-11-26",
         "side": "sell",
+        "symbol": "GMD"
+      },
+      {
+        "quantity": 600,
+        "reason": "exit",
+        "session": "2026-11-26",
+        "side": "sell",
+        "symbol": "GVR"
+      },
+      {
+        "quantity": 900,
+        "reason": "exit",
+        "session": "2026-11-26",
+        "side": "sell",
+        "symbol": "PVT"
+      },
+      {
+        "quantity": 100,
+        "reason": "add",
+        "session": "2026-11-26",
+        "side": "buy",
         "symbol": "PNJ"
+      },
+      {
+        "quantity": 1400,
+        "reason": "entry",
+        "session": "2026-11-26",
+        "side": "buy",
+        "symbol": "KDH"
+      },
+      {
+        "quantity": 400,
+        "reason": "entry",
+        "session": "2026-11-26",
+        "side": "buy",
+        "symbol": "DGW"
+      },
+      {
+        "quantity": 1400,
+        "reason": "entry",
+        "session": "2026-11-26",
+        "side": "buy",
+        "symbol": "NKG"
       }
     ],
     "started": "2026-11-17"
